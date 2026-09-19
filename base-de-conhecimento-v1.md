@@ -2,7 +2,7 @@
 
 ## 1. Qual informação especializada o agente precisa, e por que ela não está no modelo
 
-O modelo sabe conversar e sabe redes de computadores em geral (o que é Wi-Fi, o que é fibra óptica, lógica de troubleshooting). O que ele não sabe é **como esta operadora especificamente resolve esses problemas** — e é isso que precisa vir de fora.
+O modelo sabe conversar e sabe redes de computadores em geral (o que é Wi-Fi, o que é fibra óptica, lógica de troubleshooting). O que ele não sabe é **como esta operadora especificamente resolve esses problemas** e é isso que precisa vir de fora.
 
 | Conhecimento necessário | Por que não vem do modelo |
 |---|---|
@@ -27,15 +27,15 @@ O modelo sabe conversar e sabe redes de computadores em geral (o que é Wi-Fi, o
 | Histórico de atendimento do cliente | Banco de dados / CRM da operadora | Registros de banco (não é documento) | Sistema de CRM; muda a cada atendimento | Via API simulada (`consultar_historico_atendimento`) — **não é fonte de RAG** |
 | Teste de linha, status do bairro | Sistema de rede da operadora | Chamada de API em tempo real | Sistema de monitoramento de rede; muda a todo instante | Via API simulada (`testar_linha`, `conferir_queda_bairro`) — **não é fonte de RAG** |
 
-Nenhuma fonte listada para indexação depende de acesso que não temos: como o projeto usa dados simulados (declarado na Parte 1 do case), o manual de sintomas, o manual de políticas e o manual de equipamentos serão escritos por nós mesmos como documentos de apoio. Nenhuma fonte é PDF escaneado — não há problema de OCR aqui.
+Nenhuma fonte listada para indexação depende de acesso que não temos: como o projeto usa dados simulados (declarado na Parte 1 do case), o manual de sintomas, o manual de políticas e o manual de equipamentos serão escritos por nós mesmos como documentos de apoio. Nenhuma fonte é PDF escaneado não há problema de OCR aqui.
 
-## 3. O que vai para o índice — e o que não vai
+## 3. O que vai para o índice e o que não vai
 
 | Vai para o índice (RAG) | Não vai — é dado vivo / consulta estruturada |
 |---|---|
 | Manual de sintomas → diagnóstico (~30–50 itens de FAQ) | Resultado do teste de linha (chamada de ferramenta, não busca) |
-| Manual de políticas e limites de segurança (~1 documento curto, 5–8 seções) | Status de queda no bairro (chamada de ferramenta) |
-| Manual de equipamentos e limiares técnicos (~1 documento, 10–20 itens) | Histórico de atendimento do cliente por `id_chamado` (consulta a banco/API, filtro `==`) |
+| Manual de políticas e limites de segurança (1 documento curto, 5–8 seções) | Status de queda no bairro (chamada de ferramenta) |
+| Manual de equipamentos e limiares técnicos (1 documento, 10–20 itens) | Histórico de atendimento do cliente por `id_chamado` (consulta a banco/API, filtro `==`) |
 | Padrão de qualidade de instalação, usado pelo Agente de Apoio ao Técnico (~10–15 itens) | Número do contrato do cliente (consulta a banco, filtro `==`) |
 | | Limite de "3 testes por atendimento" ou "6 mensagens" (isso é regra de controle de fluxo do agente, vive no código/prompt, não é busca) |
 
@@ -51,7 +51,7 @@ Os quatro documentos têm estruturas diferentes, então a estratégia é diferen
 |---|---|---|---|---|
 | Manual de sintomas → diagnóstico | Item de FAQ (um sintoma relatado + diagnóstico + ação recomendada) | Um chunk por item de FAQ | Sim, desde que herde a categoria do sintoma (ex.: "Categoria: sinal fraco") no início do chunk, para não depender do item anterior | `categoria_sintoma`, `agente_aplicavel: cliente` |
 | Políticas internas / SLA / limites de segurança | Seção (ex.: "Limites de segurança", "Regras de escalonamento", "O que o robô nunca faz") | Um chunk por seção | Sim, mas cada chunk herda o título da seção como cabeçalho, senão uma frase como "no máximo 3 vezes" fica sem contexto de a que ela se refere | `secao`, `tipo: politica` |
-| Manual de equipamentos e limiares técnicos | Item (um código de LED, ou uma faixa de sinal aceitável) | Um chunk por item, com o nome do equipamento/modelo herdado no cabeçalho | Sim, com o herdado — sem isso, "-19dBm = OK" não diz OK para qual equipamento | `modelo_equipamento`, `agente_aplicavel: técnico de campo` |
+| Manual de equipamentos e limiares técnicos | Item (um código de LED, ou uma faixa de sinal aceitável) | Um chunk por item, com o nome do equipamento/modelo herdado no cabeçalho | Sim, com o herdado sem isso, "-19dBm = OK" não diz OK para qual equipamento | `modelo_equipamento`, `agente_aplicavel: técnico de campo` |
 | Padrão de qualidade de instalação | Item de critério (um critério de aprovação por tipo de foto: fusão de fibra, conector, etiqueta MAC) | Um chunk por critério | Sim, desde que inclua o tipo de foto a que se refere | `tipo_foto`, `agente_aplicavel: técnico de campo` |
 
 O metadado `agente_aplicavel` é o que permite, na hora da recuperação, restringir a busca ao agente que está perguntando (Agente do Cliente não precisa ver o padrão de qualidade de instalação; o Agente do Técnico de Campo não precisa do roteiro de frases de atendimento ao cliente) — evitando trazer contexto irrelevante para o prompt.
