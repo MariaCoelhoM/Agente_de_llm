@@ -32,9 +32,3 @@ erro nesta versão.
   como ferramenta (`obter_data_atual`) porque é mais fácil de testar
   isoladamente e porque, se um dia o agente precisar de mais do que a data
   (hora, fuso do cliente), já existe um lugar natural para isso crescer.
-
-## Texto do prompt
-Ver `SYSTEM_PROMPT` em `src/agent.py` — mantido em um único lugar para não
-haver duas versões divergentes. Ao mudar o prompt, copiem a versão anterior
-para `prompts/suporte_v0.md` antes de editar `agent.py`, para manter o
-histórico de versões pedido no enunciado.
