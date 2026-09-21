@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-09-20T15:21:53.814778",
+  "modelo": "qwen/qwen3.8-27b",
+  "contrato": "C005",
+  "mensagem_inicial": "Minha internet está fora do ar.",
+  "trajetoria": [
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C005"
+      },
+      "resultado": {
+        "contrato": "C005",
+        "status": "OFFLINE",
+        "sinal_dbm": -19.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C005"
+      },
+      "resultado": {
+        "bairro": "Jardim Ipê",
+        "em_manutencao": true
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Oi! Testei sua linha agora e minha leitura é a seguinte:\n\n- **Linha:** offline, mas o **sinal está bom (-19 dBm)** — não indiquei falha física no seu equipamento.\n- **Bairro:** ficou **Jardim Ipê, e ele está em manutenção geral da rede** no momento.\n\nIsso explica a sua queda: como o bairro inteiro está em manutenção, não é um problema da sua instalação — a **equipe de rede já está atuando na região**, e seu serviço volta assim que a manutenção terminar.\n\nPor isso, **não vou agendar visita técnica individual** (nem faz sentido no caso, já que a causa é a manutenção geral). Se a internet continuar fora depois que a manutenção acabar, me chame de novo que eu rodo um novo teste e a gente vê o que há.\n\nPosso te ajudar com mais alguma coisa de suporte técnico?"
+    }
+  ],
+  "motivo_parada": "resposta_final_do_modelo",
+  "resposta_final": "Oi! Testei sua linha agora e minha leitura é a seguinte:\n\n- **Linha:** offline, mas o **sinal está bom (-19 dBm)** — não indiquei falha física no seu equipamento.\n- **Bairro:** ficou **Jardim Ipê, e ele está em manutenção geral da rede** no momento.\n\nIsso explica a sua queda: como o bairro inteiro está em manutenção, não é um problema da sua instalação — a **equipe de rede já está atuando na região**, e seu serviço volta assim que a manutenção terminar.\n\nPor isso, **não vou agendar visita técnica individual** (nem faz sentido no caso, já que a causa é a manutenção geral). Se a internet continuar fora depois que a manutenção acabar, me chame de novo que eu rodo um novo teste e a gente vê o que há.\n\nPosso te ajudar com mais alguma coisa de suporte técnico?"
+}

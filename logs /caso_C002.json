@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-09-20T15:16:07.393679",
+  "modelo": "qwen/qwen3.8-27b",
+  "contrato": "C002",
+  "mensagem_inicial": "Minha internet caiu inteira, nada funciona.",
+  "trajetoria": [
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C002"
+      },
+      "resultado": {
+        "contrato": "C002",
+        "status": "ONLINE",
+        "sinal_dbm": -18.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C002"
+      },
+      "resultado": {
+        "bairro": "Jardim Ipê",
+        "em_manutencao": true
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Obrigado por avisar. Rodei dois diagnósticos no seu contrato (C002, bairro **Jardim Ipê**):\n\n- **Sinal da sua linha:** OK — o equipamento está receitando com sinal bom (-18 dBm), ou seja, **não há falha física aparente no seu trecho**.\n- **Situação do bairro:** 🚧 **há manutenção em andamento na sua região.**\n\nComo isso significa que a interrupção está vinda da **rede do bairro** e não do seu equipamento, a indicativa técnica aqui é:\n\n> **Não tenho como agendar uma visita técnica individual** enquanto a região estiver em manutenção — porque a **equipe de rede já está atuando na região** e o **serviço volta assim que a manutenção terminar**. Mandar técnico no seu endereço individual não resolveria, já que o ponto de ruptura é na rede coletiva, que já está sob intereção da equipe.\n\n**O que eu recomendo:**\n1. Aguarde o comunicado de restabelecimento (viêm normalmente por SMS/app quando a manutenção fecha).\n2. Se depois disso a internet *ainda* estiver fora, me chame de novo — aí corro o teste individual e, se o seu trecho estiver mesmo comprometido, aí sim proponho a visita do técnico ao próximo dia útil.\n\nPosso fazer mais alguma verificação técnica enquanto a manutenção prossegue?"
+    }
+  ],
+  "motivo_parada": "resposta_final_do_modelo",
+  "resposta_final": "Obrigado por avisar. Rodei dois diagnósticos no seu contrato (C002, bairro **Jardim Ipê**):\n\n- **Sinal da sua linha:** OK — o equipamento está receitando com sinal bom (-18 dBm), ou seja, **não há falha física aparente no seu trecho**.\n- **Situação do bairro:** 🚧 **há manutenção em andamento na sua região.**\n\nComo isso significa que a interrupção está vinda da **rede do bairro** e não do seu equipamento, a indicativa técnica aqui é:\n\n> **Não tenho como agendar uma visita técnica individual** enquanto a região estiver em manutenção — porque a **equipe de rede já está atuando na região** e o **serviço volta assim que a manutenção terminar**. Mandar técnico no seu endereço individual não resolveria, já que o ponto de ruptura é na rede coletiva, que já está sob intereção da equipe.\n\n**O que eu recomendo:**\n1. Aguarde o comunicado de restabelecimento (viêm normalmente por SMS/app quando a manutenção fecha).\n2. Se depois disso a internet *ainda* estiver fora, me chame de novo — aí corro o teste individual e, se o seu trecho estiver mesmo comprometido, aí sim proponho a visita do técnico ao próximo dia útil.\n\nPosso fazer mais alguma verificação técnica enquanto a manutenção prossegue?"
+}

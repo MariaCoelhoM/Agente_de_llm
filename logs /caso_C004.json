@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-09-20T15:22:30.885461",
+  "modelo": "qwen/qwen3.8-27b",
+  "contrato": "C004",
+  "mensagem_inicial": "Minha internet não liga faz três dias.",
+  "trajetoria": [
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "contrato": "C004",
+        "status": "OFFLINE",
+        "sinal_dbm": -30.0,
+        "falha_fisica_provavel": true
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "obter_data_atual",
+      "args": {},
+      "resultado": {
+        "hoje": "2026-09-20",
+        "amanha": "2026-09-21"
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Hoje é 20/09, então posso agendar um técnico para **amanhã, segunda-feira, 21/09**. Posso confirmar a visita técnica com você nessa data? É só me dizer **sim** ou **não** que eu já deixo marcado."
+    }
+  ],
+  "motivo_parada": "resposta_final_do_modelo",
+  "resposta_final": "Hoje é 20/09, então posso agendar um técnico para **amanhã, segunda-feira, 21/09**. Posso confirmar a visita técnica com você nessa data? É só me dizer **sim** ou **não** que eu já deixo marcado."
+}

@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-09-20T15:18:43.942274",
+  "modelo": "qwen/qwen3.8-27b",
+  "contrato": "C999",
+  "mensagem_inicial": "Internet não funciona.",
+  "trajetoria": [
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C999"
+      },
+      "resultado": {
+        "erro": "contrato_nao_encontrado",
+        "contrato": "C999"
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C999"
+      },
+      "resultado": {
+        "erro": "contrato_nao_encontrado",
+        "contrato": "C999"
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Não encontrei o contrato **C999** em nosso sistema. 😕 \n\nPoderia me confirmar o número correto do seu contrato? Costuma aparecer no boleto ou na sua conta no nosso portal/app.\n\nAssim que eu localizar, já testo a linha e verifico se há alguma queda no seu bairro."
+    }
+  ],
+  "motivo_parada": "resposta_final_do_modelo",
+  "resposta_final": "Não encontrei o contrato **C999** em nosso sistema. 😕 \n\nPoderia me confirmar o número correto do seu contrato? Costuma aparecer no boleto ou na sua conta no nosso portal/app.\n\nAssim que eu localizar, já testo a linha e verifico se há alguma queda no seu bairro."
+}

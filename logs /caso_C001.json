@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-09-20T15:13:18.603583",
+  "modelo": "qwen/qwen3.8-27b",
+  "contrato": "C001",
+  "mensagem_inicial": "Boa noite, minha internet caiu e a luz do aparelho ficou vermelha.",
+  "trajetoria": [
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "contrato": "C001",
+        "status": "OFFLINE",
+        "sinal_dbm": -22.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Boa noite! Já testei sua linha (contrato C001): está **OFFLINE**, mas o sinal está bom (-22 dBm) e **não há falha física nem manutenção na sua região (Vila Nova)**.\n\nComo o sinal está ok, o problema costuma ser apenas de sincronização do equipamento. Posso tentar **reiniciar a conexão à distância**? Isso leva alguns minutos. Permito?\n\n(Mantenha o aparelho ligado durante o processo.)"
+    }
+  ],
+  "motivo_parada": "resposta_final_do_modelo",
+  "resposta_final": "Boa noite! Já testei sua linha (contrato C001): está **OFFLINE**, mas o sinal está bom (-22 dBm) e **não há falha física nem manutenção na sua região (Vila Nova)**.\n\nComo o sinal está ok, o problema costuma ser apenas de sincronização do equipamento. Posso tentar **reiniciar a conexão à distância**? Isso leva alguns minutos. Permito?\n\n(Mantenha o aparelho ligado durante o processo.)"
+}
