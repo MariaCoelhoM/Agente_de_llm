@@ -1,0 +1,98 @@
+[
+  {
+    "id": "Q01",
+    "pergunta": "o que significa a luz vermelha piscando no meu modem",
+    "forma": "assunto",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["S01"]
+  },
+  {
+    "id": "Q02",
+    "pergunta": "a partir de quantos dBm o sinal é considerado falha física",
+    "forma": "termo",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["S07", "E03", "E02"]
+  },
+  {
+    "id": "Q03",
+    "pergunta": "meu bairro está em manutenção, posso agendar visita só para a minha casa",
+    "forma": "assunto",
+    "depende_de_excecao": true,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["P04", "S09"]
+  },
+  {
+    "id": "Q04",
+    "pergunta": "quantos testes de linha o agente pode fazer em um atendimento",
+    "forma": "termo",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["P03"]
+  },
+  {
+    "id": "Q05",
+    "pergunta": "minha internet cai e volta sozinha, o que devo fazer",
+    "forma": "assunto",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["S06"]
+  },
+  {
+    "id": "Q06",
+    "pergunta": "o cliente pediu desconto na fatura, o agente pode dar",
+    "forma": "assunto",
+    "depende_de_excecao": true,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["P02"]
+  },
+  {
+    "id": "Q07",
+    "pergunta": "qual o prazo máximo para agendar a visita técnica",
+    "forma": "termo",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["P04"]
+  },
+  {
+    "id": "Q08",
+    "pergunta": "não aparece a rede sem fio nos aparelhos, mas a luz da fibra está boa",
+    "forma": "assunto",
+    "depende_de_excecao": false,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["S04"]
+  },
+  {
+    "id": "Q09",
+    "pergunta": "o agente consegue trocar a senha do wi-fi do cliente",
+    "forma": "assunto",
+    "depende_de_excecao": true,
+    "fonte_esperada": "corpus",
+    "esperado_corpus": ["S14"]
+  },
+  {
+    "id": "Q10",
+    "pergunta": "quanto custa o plano de 500 mega",
+    "forma": "assunto",
+    "depende_de_excecao": false,
+    "fonte_esperada": "nenhuma",
+    "esperado_corpus": []
+  },
+  {
+    "id": "Q11",
+    "pergunta": "o meu bairro está em manutenção agora",
+    "forma": "registro",
+    "depende_de_excecao": false,
+    "fonte_esperada": "ferramenta",
+    "esperado_corpus": []
+  },
+  {
+    "id": "Q12",
+    "pergunta": "qual é o sinal da minha linha neste momento",
+    "forma": "registro",
+    "depende_de_excecao": false,
+    "fonte_esperada": "ferramenta",
+    "esperado_corpus": []
+  }
+]
