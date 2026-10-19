@@ -20,13 +20,14 @@ MAX_TOKENS_RESPOSTA = 500
 PROMPT_SISTEMA = "suporte_v2.md"
 PROMPT_PROCEDURAL = "procedural.md"
 
-MAX_VOLTAS_AGENTE = 6          
-MAX_PASSOS_FERRAMENTA = 8      
-MAX_TESTES_LINHA = 3           
-TETO_TOKENS = 12000            
-TENTATIVAS_LLM = 3             
-TETO_SEGUNDOS = 120            
-REPETICOES_PARA_LACO = 3       
+# Orçamento do laço: passos e tempo.
+MAX_VOLTAS_AGENTE = 6          # chamadas ao modelo por atendimento (antes: MAX_MENSAGENS)
+MAX_PASSOS_FERRAMENTA = 8      # chamadas de ferramenta por atendimento
+MAX_TESTES_LINHA = 3           # regra do domínio (case §2.2)
+TETO_TOKENS = 12000            # tokens acumulados (entrada + saída) por atendimento
+TENTATIVAS_LLM = 3             # tentativas em erro recuperável (limite de taxa, rede, timeout)
+TETO_SEGUNDOS = 120            # tempo de parede do atendimento, sem contar a espera humana
+REPETICOES_PARA_LACO = 3       # mesma ferramenta com os mesmos argumentos N vezes = laço     
 
 RECURSION_LIMIT = 25
 
