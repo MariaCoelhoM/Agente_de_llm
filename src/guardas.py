@@ -4,10 +4,11 @@ from typing import List, Optional
 
 from . import config
 
-# motivo -> (descrição, encaminha para humano)
+# motivo -> (descrição, encaminha para humano?)
 MOTIVOS = {
     "resposta_final": ("o modelo respondeu sem pedir mais ferramentas", False),
     "encaminhado_humano": ("assunto fora do suporte técnico, decidido pela triagem", True),
+    "entrada_incompleta": ("a mensagem não descreve nenhum sintoma; o sistema pede detalhes sem chamar o modelo", False),
     "limite_de_voltas": (f"mais de {config.MAX_VOLTAS_AGENTE} chamadas ao modelo", True),
     "limite_de_ferramentas": (f"mais de {config.MAX_PASSOS_FERRAMENTA} chamadas de ferramenta", True),
     "laco_detectado": (f"mesma ferramenta e mesmos argumentos {config.REPETICOES_PARA_LACO} vezes sem mudança no estado", True),
