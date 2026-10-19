@@ -1,9 +1,4 @@
-"""
-Camada de acesso ao "sistema do provedor" (item 4.2 — integração com software
-tradicional). Banco SQLite simulado: clientes, modems e status de bairro.
-Nenhuma ferramenta do agente lê ou escreve neste arquivo diretamente; todas
-passam por estas funções.
-"""
+import hashlib
 import sqlite3
 import os
 
@@ -14,6 +9,29 @@ def conectar():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def chave_visita(contrato: str, data: str) -> str:
+    """Chave de idempotência derivada do conteúdo (enunciado §5.3 e §8.5):
+    o mesmo contrato com a mesma data produz sempre a mesma chave."""
+    return hashlib.sha256(f"{contrato}|{data}".encode("utf-8")).hexdigest()[:16]
+
+
+def _migrar_visitas(conn):
+    """Bancos criados antes da Parte 2 não têm a coluna `chave`. SQLite não
+    adiciona coluna UNIQUE por ALTER TABLE, então a unicidade vai por índice."""
+    colunas = [r["name"] for r in conn.execute("PRAGMA table_info(visitas)")]
+    if "chave" not in colunas:
+        conn.execute("ALTER TABLE visitas ADD COLUMN chave TEXT")
+        vistas = set()
+        for r in conn.execute("SELECT id, contrato, data FROM visitas").fetchall():
+            chave = chave_visita(r["contrato"], r["data"])
+            if chave in vistas:
+                chave = f"{chave}-dup{r['id']}"
+            vistas.add(chave)
+            conn.execute("UPDATE visitas SET chave = ? WHERE id = ?", (chave, r["id"]))
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_visitas_chave ON visitas(chave)")
+    conn.commit()
 
 
 def criar_schema(conn):
@@ -39,11 +57,13 @@ def criar_schema(conn):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             contrato TEXT NOT NULL,
             data TEXT NOT NULL,
-            status TEXT NOT NULL
+            status TEXT NOT NULL,
+            chave TEXT NOT NULL UNIQUE   -- idempotência: derivada do conteúdo
         );
         """
     )
     conn.commit()
+    _migrar_visitas(conn)
 
 
 def seed(conn):
