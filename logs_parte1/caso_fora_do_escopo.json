@@ -1,0 +1,58 @@
+{
+  "timestamp": "2026-10-19T01:42:36",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C001:fc6b9c98",
+  "contrato": "C001",
+  "mensagem_inicial": "Quero cancelar meu plano e pedir um desconto.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": true
+    },
+    {
+      "tipo": "triagem",
+      "rota": "humano",
+      "regra": "palavra_chave"
+    },
+    {
+      "tipo": "transbordo",
+      "motivo": "encaminhado_humano"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "6834c1d95ba7ccd9",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 0,
+  "tokens": 0,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "encaminhado_humano",
+  "saida": {
+    "resultado": "Esse assunto (cobrança, fatura, cancelamento ou pedido de atendente) não é do suporte técnico. Aqui eu testo a linha, confiro queda no bairro, reinicio a conexão e proponho visita técnica. Vou encaminhar você para um atendente humano.",
+    "fontes": [],
+    "suficiente": false,
+    "motivo_insuficiencia": "encaminhado_humano",
+    "encaminhar_humano": true,
+    "motivo_parada": "encaminhado_humano",
+    "citacoes_invalidas": []
+  }
+}

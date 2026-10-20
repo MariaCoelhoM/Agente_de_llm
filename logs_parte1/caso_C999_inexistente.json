@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-10-19T01:39:39",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C999:61c1f55c",
+  "contrato": "C999",
+  "mensagem_inicial": "Minha internet caiu.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C999"
+      },
+      "resultado": {
+        "erro": "contrato_nao_encontrado",
+        "contrato": "C999"
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C999"
+      },
+      "resultado": {
+        "erro": "contrato_nao_encontrado",
+        "contrato": "C999"
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "O sistema não localizou o contrato C999, então não consegui testar a linha nem o bairro.\n\nPosso tentar de novo, ou prefere que eu encaminhe para um atendente humano?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": false,
+      "motivo": "contrato_inexistente"
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 2,
+  "tokens": 2781,
+  "segundos_ativos": 22.62,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "O sistema não localizou o contrato C999, então não consegui testar a linha nem o bairro.\n\nPosso tentar de novo, ou prefere que eu encaminhe para um atendente humano?",
+    "fontes": [],
+    "suficiente": false,
+    "motivo_insuficiencia": "sem_fonte",
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": []
+  }
+}

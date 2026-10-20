@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-10-19T01:42:10",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C001:f8c14d80",
+  "contrato": "C001",
+  "mensagem_inicial": "não funciona",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": true
+    },
+    {
+      "tipo": "triagem",
+      "rota": "incompleta",
+      "regra": "sem_palavra_de_sintoma"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "039af71ea17a5820",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 0,
+  "tokens": 0,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "entrada_incompleta",
+  "saida": {
+    "resultado": "Não consegui entender qual é o problema. Para eu poder ajudar, me conte: o que a luz do modem mostra (verde, vermelha, piscando ou apagada) e se a falha acontece em todos os aparelhos ou só em um.",
+    "fontes": [],
+    "suficiente": false,
+    "motivo_insuficiencia": "entrada_incompleta",
+    "encaminhar_humano": false,
+    "motivo_parada": "entrada_incompleta",
+    "citacoes_invalidas": []
+  }
+}

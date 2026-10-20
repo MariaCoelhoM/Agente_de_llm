@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-10-19T01:40:02",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C005:2d48a346",
+  "contrato": "C005",
+  "mensagem_inicial": "Estou sem internet, quero que mandem um técnico hoje.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C005"
+      },
+      "resultado": {
+        "contrato": "C005",
+        "status": "OFFLINE",
+        "sinal_dbm": -19.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C005"
+      },
+      "resultado": {
+        "bairro": "Jardim Ipê",
+        "em_manutencao": true
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Sua linha está offline, mas o sinal está bom (-19 dBm), então não é falha física. O problema é que o seu bairro, Jardim Ipê, está em manutenção geral de rede.\n\nComo a equipe de rede já está atuando na região, não consigo agendar uma visita técnica individual. A manutenção deve resolver a queda para todos os clientes do bairro.\n\nPosso ajudar com mais alguma coisa?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "4cb9aa1baad88964",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "7db6b3dc54a4a734",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 2,
+  "tokens": 2850,
+  "segundos_ativos": 23.1,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "Sua linha está offline, mas o sinal está bom (-19 dBm), então não é falha física. O problema é que o seu bairro, Jardim Ipê, está em manutenção geral de rede.\n\nComo a equipe de rede já está atuando na região, não consigo agendar uma visita técnica individual. A manutenção deve resolver a queda para todos os clientes do bairro.\n\nPosso ajudar com mais alguma coisa?",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "conferir_queda_bairro",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": []
+  }
+}

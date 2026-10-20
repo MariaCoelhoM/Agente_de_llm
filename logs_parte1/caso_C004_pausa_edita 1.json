@@ -1,0 +1,152 @@
+{
+  "timestamp": "2026-10-19T01:41:16",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C004:3c17344b",
+  "contrato": "C004",
+  "mensagem_inicial": "Sem internet nenhuma, a luz está vermelha.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "contrato": "C004",
+        "status": "OFFLINE",
+        "sinal_dbm": -30.0,
+        "falha_fisica_provavel": true
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "obter_data_atual",
+      "args": {},
+      "resultado": {
+        "hoje": "2026-10-19",
+        "amanha": "2026-10-20"
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "propor_visita",
+      "args": {
+        "data": "2026-10-20"
+      },
+      "resultado": {
+        "proposta": true,
+        "contrato": "C004",
+        "data": "2026-10-20"
+      }
+    },
+    {
+      "tipo": "aprovacao_humana",
+      "decisao": "editar",
+      "data_proposta": "2026-10-20",
+      "data_final": "2026-10-22",
+      "motivo": null,
+      "resultado": {
+        "contrato": "C004",
+        "data": "2026-10-22",
+        "status": "AGENDADA",
+        "ja_existia": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "A visita técnica foi **agendada para 22/10/2026**. A equipe técnica vai até você para resolver a falha física na linha.\n\nSe o problema voltar antes disso, me avise."
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "59728a4a86f415e7",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "09481c1a0e721f15",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [
+    {
+      "payload": {
+        "acao": "agendar_visita_tecnico",
+        "contrato": "C004",
+        "data_proposta": "2026-10-20",
+        "consequencia": "desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho",
+        "opcoes": [
+          "aprovar",
+          "rejeitar",
+          "editar"
+        ],
+        "janela_edicao": [
+          "2026-10-19",
+          "2026-11-02"
+        ],
+        "prazo_segundos": 900
+      },
+      "resposta": {
+        "decisao": "editar",
+        "data": "2026-10-22"
+      }
+    }
+  ],
+  "voltas": 4,
+  "tokens": 5924,
+  "segundos_ativos": 48.77,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "A visita técnica foi **agendada para 22/10/2026**. A equipe técnica vai até você para resolver a falha física na linha.\n\nSe o problema voltar antes disso, me avise.",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "obter_data_atual",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "propor_visita",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "agendar_visita_tecnico",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": []
+  }
+}
