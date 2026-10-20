@@ -89,19 +89,22 @@ Cliente: Boa noite, minha internet caiu e a luz do aparelho ficou vermelha. Agen
   (nunca é tratado pelo agente técnico); se passarem 6 mensagens sem
   resolução; ou se o cliente pedir para falar com uma pessoa.
 
-  ## 3. O workflow do agente
-ENTRADA cliente escreve no WhatsApp [decide: CÓDIGO — roteamento do webhook]
-SEPARAÇÃO é técnico, config, cobrança ou queda geral? [decide: MODELO — classificação de intenção]
-DIAGNÓSTICO testar_linha / conferir_queda_bairro [decide: MODELO escolhe qual testar; CÓDIGO aplica limite de 3 testes]
-AÇÃO reiniciar_conexao, se não houver falha física [decide: MODELO]
-VERIFICAÇÃO roda testar_linha de novo antes de dizer "resolvido" [decide: CÓDIGO — checagem dupla fixa]
-AGENDAMENTO se não resolveu, propõe visita; só agenda com "sim" do cliente [ESCRITA irreversível de custo — confirma com o cliente]
-REGISTRO grava a trajetória e o resultado no log [decide: CÓDIGO]
-RESPOSTA responde ao cliente em linguagem simples [decide: MODELO]
+## 3. O workflow do agente
 
-Dos 8 passos, 3 têm decisão do modelo (2, 3, 4 e 8) e o resto é código fixo —
-a maior parte do sistema é, de fato, regra determinística; a parte que
-justifica um agente está concentrada nos passos 2 a 4 (ver §2.5).
+Atualizado na Parte 2 para o que o sistema faz hoje (o desenho está em `docs/arquitetura.md`).
+
+| Passo | O que acontece | Quem decide |
+|---|---|---|
+| 1. ENTRADA | o cliente escreve no WhatsApp; o contrato vem da sessão | CÓDIGO |
+| 2. SEPARAÇÃO | cobrança, cancelamento ou pedido de atendente vão para humano; mensagem sem sintoma recebe um pedido de detalhes | CÓDIGO (regras de palavra, sem chamar o modelo) |
+| 3. DIAGNÓSTICO | `testar_linha`, `conferir_queda_bairro`, `consultar_base_conhecimento` | MODELO escolhe qual; CÓDIGO aplica o limite de 3 testes e detecta laço |
+| 4. AÇÃO | `reiniciar_conexao`, se não houver falha física | MODELO escolhe; CÓDIGO recusa se o sinal é igual ou pior que -27 dBm |
+| 5. VERIFICAÇÃO | roda `testar_linha` de novo antes de dizer "resolvido" | MODELO, por instrução do prompt; não há trava em código (medido em `docs/experimento_frase.md`) |
+| 6. AGENDAMENTO | `propor_visita` valida; o grafo pausa; o cliente aprova, rejeita ou edita a data; só então o código agenda | CÓDIGO e CLIENTE; o modelo não tem a ferramenta que agenda |
+| 7. REGISTRO | grava a trajetória no log e a memória do atendimento | CÓDIGO |
+| 8. RESPOSTA | responde ao cliente em linguagem simples; o código valida fontes e contrato de saída | MODELO escreve; CÓDIGO valida |
+
+Dos 8 passos, 4 têm decisão do modelo (3, 4, 5 e 8) e o resto é código fixo. A maior parte do sistema é regra determinística; a parte que justifica um agente está concentrada nos passos 3 a 5 (ver §4).
 
 ## 4. O sistema
 
@@ -127,14 +130,19 @@ agendar dependem do **resultado intermediário**, não só da mensagem inicial.
 | `testar_linha` | lê status e sinal do modem | leitura | — | SQLite `provedor.db` |
 | `conferir_queda_bairro` | verifica manutenção no bairro | leitura | — | SQLite `provedor.db` |
 | `reiniciar_conexao` | reinicia a conexão à distância | escrita | sim | SQLite `provedor.db` |
-| `agendar_visita_tecnico` | agenda visita, só com confirmação do cliente | escrita | não (desloca técnico) | SQLite `provedor.db` |
+| `propor_visita` | valida a data (hoje até amanhã), o contrato e o bairro; não escreve nada | validação | — | SQLite `provedor.db` |
+| `consultar_base_conhecimento` | busca trechos nos manuais e políticas; recusa quando nada cobre a pergunta | leitura | — | corpus em `dados/corpus` |
+| `agendar_visita_tecnico` | agenda visita; o modelo não a chama, quem chama é o código depois da aprovação do cliente | escrita | não (desloca técnico) | SQLite `provedor.db` |
 
-`obter_data_atual` é a quinta ferramenta, além das quatro do case original —
-existe só porque o modelo não tem relógio e precisa saber que dia é hoje
-para propor a data de uma visita técnica (regra do domínio §2.1). Ela não
-envolve nenhuma decisão do agente (não lê nem escreve no sistema do
-provedor), então não conta como parte da complexidade de diagnóstico do
-sistema — é um utilitário.
+`obter_data_atual` existe só porque o modelo não tem relógio e precisa saber
+que dia é hoje para propor a data de uma visita técnica (regra do domínio
+§2.1). Ela não lê nem escreve no sistema do provedor, então não conta como
+parte da complexidade de diagnóstico: é um utilitário. A Parte 2 acrescentou
+`propor_visita` e `consultar_base_conhecimento` às quatro ferramentas do case
+original.
+
+A defesa do nível de autonomia, feita com o sistema rodando, está em
+`docs/arquitetura.md` §5.
 
 ## 5. A justificativa de negócio
 
@@ -214,7 +222,7 @@ fictício.
 
 - [x] **RAG** (Parte 2): o manual de causas comuns de sinal fraco/perda de
   fibra do provedor, hoje só existe como PDF interno não estruturado.
-- [x] **MCP** (Parte 2): a camada de acesso ao "sistema do provedor"
+- [ ] **MCP** (Parte 2): a camada de acesso ao "sistema do provedor"
   (`testar_linha`, `conferir_queda_bairro`, `reiniciar_conexao`,
   `agendar_visita_tecnico`) vira servidor MCP.
 - [ ] **LangChain** (Parte 2): ainda não decidido em que parte da
@@ -235,3 +243,49 @@ num instante em que ela está temporariamente normal, o agente conclui
 atendimento como resolvido, rodar `testar_linha` uma segunda vez após um
 intervalo (em vez de uma checagem única), e perguntar diretamente ao
 cliente se o problema persiste depois de alguns minutos.
+
+## 12. O que o domínio ensinou (complemento da Parte 2)
+
+Esta seção registra o que ficou claro ao construir o sistema sobre este domínio e que não está nas seções anteriores. Cada item aponta para onde aparece no projeto.
+
+### 12.1 O vocabulário
+
+| Termo | O que significa aqui |
+|---|---|
+| ONT / modem óptico | o aparelho que recebe a fibra na casa do cliente. É separado do roteador Wi-Fi (`dados/corpus/03_equipamentos_limiares.md`, E06) |
+| dBm | a medida do sinal óptico. Quanto mais negativo, pior: -22 é normal, -30 é falha |
+| zona cinzenta | sinal entre -25 e -27 dBm: funciona, mas é instável (E02, S08) |
+| falha física | sinal igual ou pior que -27 dBm: cabo, conector ou fibra com problema. Reinício remoto não resolve (E03, S07) |
+| ONLINE / OFFLINE | o que o teste de linha devolve. ONLINE com sinal normal significa que a fibra está boa e o problema está dentro da casa (E05) |
+| bairro em manutenção | queda coletiva: a equipe de rede já está atuando e nenhuma visita individual se justifica (S09) |
+| reinício remoto | reinicia a conexão pelo sistema do provedor. Não é o mesmo que o cliente reiniciar o roteador dele |
+
+### 12.2 Regras que todo mundo da área conhece e nenhum documento registrava
+
+- A **luz vermelha piscando** e a **luz vermelha fixa** não são o mesmo defeito. Piscando é perda de sinal óptico (cabo, fibra); fixa é falha de energia ou do equipamento (S01, S02, E01). Quem trata as duas igual manda o técnico errado.
+- **Reiniciar não é sempre inofensivo.** Cada reinício conta no contador diário do modem, e com falha física ele não adianta (E04). Por isso a ferramenta recusa o reinício quando o sinal é igual ou pior que -27 dBm.
+- **"Resolvido" só vale depois de um novo teste** que confirme ONLINE com sinal normal (S12). O reinício sozinho não prova nada.
+- **Problema só de Wi-Fi não aparece no teste de linha.** O teste olha a fibra; o roteador do cliente é outra peça (E06, S04).
+- Quem decide a visita é o cliente, e a data pode ser mais longe do que o agente propõe: o agente propõe até o dia seguinte, o cliente pode escolher até 14 dias (P04).
+
+### 12.3 O passo que parecia um e são três
+
+"Agendar a visita técnica" parecia um passo. São três, com donos diferentes:
+
+1. **Propor**: `propor_visita` valida data, contrato e bairro, e não escreve nada. É a única porta do modelo.
+2. **Decidir**: o grafo pausa e o cliente aprova, rejeita ou edita a data. Se ele não responde no prazo, nada é agendado.
+3. **Gravar**: o código agenda, e repetir a mesma aprovação não cria uma segunda visita.
+
+Na Parte 1 esse passo era uma varredura da palavra "sim" na conversa. Separá-lo em três foi o que permitiu tirar do modelo a ferramenta que gera custo.
+
+### 12.4 As exceções que decidiram a arquitetura
+
+- **O cliente reclama e o teste da linha está normal.** Em `caso_C002_divergencia` e `caso_C005_nao_agenda` o sinal é bom (-18 e -19 dBm), mas o bairro está em manutenção. Mesmo quando o cliente pede um técnico ("quero que mandem um técnico hoje"), nenhuma visita individual é agendada. Essa regra está no código (`propor_visita`), não só no prompt.
+- **Contrato inexistente.** Em `caso_C999_inexistente` nenhuma ferramenta consegue testar a linha. A resposta sai com `suficiente=false` e oferece um atendente humano, em vez de inventar um diagnóstico.
+- **Manual desatualizado.** O corpus mantém `04_manual_sintomas_v0`, revogado, que contradiz os documentos atuais em três números. Deixá-lo no índice faria o sistema citar valor errado com aparência de fonte (`docs/rag.md`).
+- **Mensagem sem sintoma.** "não funciona" não diz o que testar. Quando essa regra ficou só no prompt, o modelo testou a linha mesmo assim; hoje ela é uma regra de triagem em código (`caso_entrada_incompleta`).
+- **O caso "vai e volta"** (§2.1 e §11) continua sendo a exceção sem solução completa: a zona cinzenta pede dois testes com intervalo (S08), e o limite de 3 testes por atendimento convive com isso.
+
+### 12.5 O que este case não sabe
+
+Os manuais e as políticas do corpus são simulados: foram escritos pelo grupo a partir do domínio do case, e os limiares (por exemplo -27 dBm) são valores do projeto, não de um fabricante ou de uma operadora real. A linha de base de 14 min 20 s vem de 10 atendimentos medidos no provedor parceiro (§2.1) e não foi remedida na Parte 2.
