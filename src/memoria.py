@@ -24,8 +24,9 @@ import datetime
 import hashlib
 import json
 import os
+import re
 import sqlite3
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from . import config, rag
 
@@ -298,6 +299,58 @@ def extrair_episodio(mensagem_inicial: str, trajetoria: List[dict]) -> Dict[str,
     return {"sintoma": mensagem_inicial, "causa": causa, "acao": acao, "resultado": resultado}
 
 
+# --------------------------------------------------------------------------
+# o que a memória NÃO guarda (Parte 3, controle C3 — docs/seguranca.md)
+# --------------------------------------------------------------------------
+
+# Texto com forma de instrução: um relato de sintoma não manda o sistema fazer
+# nada. Não é detector de injeção completo (ver risco residual em
+# docs/seguranca.md); é o filtro do canal persistente, onde o custo de deixar
+# passar é maior que o de perder um relato.
+PADRAO_INSTRUCAO = re.compile(
+    r"(ignor\w*|desconsider\w*|esque[cç]\w*)\s+(as |todas as |suas |essas )?(regra|instru|orienta)"
+    r"|nos? pr[oó]xim[oa]s? (atendimento|convers|vez)"
+    r"|a partir de agora|de agora em diante"
+    r"|\b(diga|responda|fale|informe|escreva) (que|sempre)"
+    r"|\bvoc[eê] (deve|tem que|precisa) "
+    r"|system|prompt|<[^>]*>|\[[^\]]*\]",
+    re.IGNORECASE,
+)
+# Dado pessoal que não precisa persistir para diagnosticar a linha.
+PADROES_DADO_PESSOAL = [
+    ("cpf", re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")),
+    ("cartao", re.compile(r"\b(?:\d[ -]?){13,16}\b")),
+    ("email", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]+\b")),
+    ("telefone", re.compile(r"(?:\+?55\s?)?\(?\b\d{2}\)?\s?9?\d{4}-?\d{4}\b")),
+    ("senha", re.compile(r"\b(senha|password|pin)\b\s*[:=é]?\s*\S+", re.IGNORECASE)),
+]
+RELATO_DESCARTADO = "[relato não guardado: continha instrução, não sintoma]"
+
+
+def sanitizar_relato(texto: str) -> Tuple[str, List[str]]:
+    """Devolve (texto que pode ser guardado, motivos). Relato com forma de
+    instrução não é guardado; dado pessoal é mascarado."""
+    motivos: List[str] = []
+    if PADRAO_INSTRUCAO.search(texto or ""):
+        return RELATO_DESCARTADO, ["instrucao"]
+    limpo = texto or ""
+    for nome, padrao in PADROES_DADO_PESSOAL:
+        if padrao.search(limpo):
+            limpo = padrao.sub(f"[{nome} removido]", limpo)
+            motivos.append(nome)
+    return limpo, motivos
+
+
+def mascarar_dado_pessoal(texto: str) -> str:
+    """Só o mascaramento de dado pessoal, sem descartar instrução. Usado no
+    trace e no log: lá a tentativa de injeção PRECISA aparecer (auditoria),
+    mas o CPF não."""
+    limpo = texto or ""
+    for nome, padrao in PADROES_DADO_PESSOAL:
+        limpo = padrao.sub(f"[{nome} removido]", limpo)
+    return limpo
+
+
 def gravar_atendimento(
     contrato: str,
     hoje: str,
@@ -309,7 +362,15 @@ def gravar_atendimento(
     memória de longo prazo é isto e nada mais: um episódio e, se uma
     ferramenta mediu o sinal, o último sinal conhecido."""
     ep = extrair_episodio(mensagem_inicial, trajetoria)
-    saida = {"episodio": registrar_episodio(contrato, hoje, caminho=caminho, **ep)}
+    saida = {}
+    if config.CONTROLES.get("memoria_sanitizada", True):
+        try:
+            ep["sintoma"], motivos = sanitizar_relato(ep["sintoma"])
+        except Exception:  # fail-closed: se o filtro falhar, o relato não é gravado
+            ep["sintoma"], motivos = RELATO_DESCARTADO, ["falha_do_filtro"]
+        if motivos:
+            saida["sanitizado"] = motivos
+    saida["episodio"] = registrar_episodio(contrato, hoje, caminho=caminho, **ep)
     testes = [t for t in trajetoria if t.get("tipo") == "ferramenta"
               and t["nome"] == "testar_linha" and "erro" not in t["resultado"]]
     if testes:
@@ -373,8 +434,8 @@ def remover_titular(
     caminho_checkpoints: Optional[str] = None,
     pasta_logs: Optional[str] = None,
 ) -> Dict[str, int]:
-    """Apaga o contrato de: semântica, descartes, episódica, checkpoints e
-    logs. Não toca no provedor.db (fonte de verdade do provedor, fora da
+    """Apaga o contrato de: semântica, descartes, episódica, checkpoints,
+    logs e traces. Não toca no provedor.db (fonte de verdade do provedor, fora da
     memória do agente) nem em backups externos. Quem confere é outro
     programa: scripts/varrer_contrato.py."""
     removidos: Dict[str, int] = {}
@@ -419,4 +480,26 @@ def remover_titular(
             if registro.get("contrato") == contrato:
                 os.remove(caminho)
                 removidos["logs"] += 1
+
+    # Parte 3: o trace também guarda o contrato (atributo app.contrato e o
+    # gen_ai.conversation.id "<contrato>:<id>"). Remove os traces inteiros das
+    # conversas do titular, para não deixar spans filhos órfãos.
+    removidos["traces"] = 0
+    pasta_traces = config.PASTA_TRACES
+    if os.path.isdir(pasta_traces):
+        for nome in os.listdir(pasta_traces):
+            if not nome.endswith(".jsonl"):
+                continue
+            caminho = os.path.join(pasta_traces, nome)
+            with open(caminho, encoding="utf-8") as arquivo:
+                linhas = [l for l in arquivo if l.strip()]
+            spans = [json.loads(l) for l in linhas]
+            do_titular = {s["trace_id"] for s in spans
+                          if s["atributos"].get("app.contrato") == contrato
+                          or str(s["atributos"].get("gen_ai.conversation.id", "")).startswith(f"{contrato}:")}
+            if do_titular:
+                manter = [l for l, s in zip(linhas, spans) if s["trace_id"] not in do_titular]
+                removidos["traces"] += len(linhas) - len(manter)
+                with open(caminho, "w", encoding="utf-8") as arquivo:
+                    arquivo.writelines(manter)
     return removidos

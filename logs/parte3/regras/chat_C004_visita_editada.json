@@ -1,0 +1,250 @@
+{
+  "timestamp": "2026-11-12T21:40:09",
+  "versao_sistema": "3.0.0",
+  "commit": "sem-git",
+  "modelo": "regras-v1",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v3.md",
+      "sha256": "4bc31ccbd428"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C004:d01527c5",
+  "contrato": "C004",
+  "identidade": {
+    "contrato": "C004",
+    "origem": "canal"
+  },
+  "mensagem_inicial": "Sem internet nenhuma, a luz está vermelha.",
+  "turnos": [
+    {
+      "cliente": "Sem internet nenhuma, a luz está vermelha.",
+      "motivo": "aguardando_humano",
+      "trace_id": "7e55949ed1e8a706622a638d130aed83",
+      "tokens_entrada": 2497,
+      "tokens_saida": 60,
+      "aprovacao_pendente": {
+        "acao": "agendar_visita_tecnico",
+        "contrato": "C004",
+        "data_proposta": "2026-11-13",
+        "consequencia": "desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho",
+        "opcoes": [
+          "aprovar",
+          "rejeitar",
+          "editar"
+        ],
+        "janela_edicao": [
+          "2026-11-12",
+          "2026-11-26"
+        ],
+        "prazo_segundos": 900
+      }
+    },
+    {
+      "cliente": "hmm, quanto custa?",
+      "motivo": "aprovacao_nao_entendida",
+      "aprovacao_pendente": {
+        "acao": "agendar_visita_tecnico",
+        "contrato": "C004",
+        "data_proposta": "2026-11-13",
+        "consequencia": "desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho",
+        "opcoes": [
+          "aprovar",
+          "rejeitar",
+          "editar"
+        ],
+        "janela_edicao": [
+          "2026-11-12",
+          "2026-11-26"
+        ],
+        "prazo_segundos": 900
+      }
+    },
+    {
+      "cliente": "[aprovação] {'decisao': 'editar', 'data': '2026-11-15', 'texto_cliente': 'não, prefiro 15/11'}",
+      "motivo": "resposta_final",
+      "trace_id": "56a1f2bdad9911943a746b66ae912a5c",
+      "tokens_entrada": 881,
+      "tokens_saida": 29,
+      "saida": {
+        "resultado": "Visita técnica agendada para 2026-11-15. O técnico vai até a sua casa nessa data. Posso ajudar em mais alguma coisa?",
+        "fontes": [
+          {
+            "tipo": "ferramenta",
+            "id": "conferir_queda_bairro",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "propor_visita",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "testar_linha",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "agendar_visita_tecnico",
+            "detalhe": null
+          }
+        ],
+        "suficiente": true,
+        "motivo_insuficiencia": null,
+        "encaminhar_humano": false,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    }
+  ],
+  "trajetoria": [
+    {
+      "tipo": "turno",
+      "n": 1
+    },
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "contrato": "C004",
+        "status": "OFFLINE",
+        "sinal_dbm": -30.0,
+        "falha_fisica_provavel": true
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "propor_visita",
+      "args": {
+        "data": "2026-11-13"
+      },
+      "resultado": {
+        "proposta": true,
+        "contrato": "C004",
+        "data": "2026-11-13"
+      }
+    },
+    {
+      "tipo": "aprovacao_humana",
+      "decisao": "editar",
+      "data_proposta": "2026-11-13",
+      "data_final": "2026-11-15",
+      "motivo": null,
+      "resultado": {
+        "contrato": "C004",
+        "data": "2026-11-15",
+        "status": "AGENDADA",
+        "ja_existia": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Visita técnica agendada para 2026-11-15. O técnico vai até a sua casa nessa data. Posso ajudar em mais alguma coisa?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "4e9929fbe4fc9a64",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "4e651ab4908ffd9b",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [
+    {
+      "payload": {
+        "acao": "agendar_visita_tecnico",
+        "contrato": "C004",
+        "data_proposta": "2026-11-13",
+        "consequencia": "desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho",
+        "opcoes": [
+          "aprovar",
+          "rejeitar",
+          "editar"
+        ],
+        "janela_edicao": [
+          "2026-11-12",
+          "2026-11-26"
+        ],
+        "prazo_segundos": 900
+      },
+      "resposta": {
+        "decisao": "editar",
+        "data": "2026-11-15",
+        "texto_cliente": "não, prefiro 15/11"
+      }
+    }
+  ],
+  "voltas": 4,
+  "tokens": 3467,
+  "tokens_entrada": 3378,
+  "tokens_saida": 89,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "Visita técnica agendada para 2026-11-15. O técnico vai até a sua casa nessa data. Posso ajudar em mais alguma coisa?",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "conferir_queda_bairro",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "propor_visita",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "agendar_visita_tecnico",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": [],
+    "afirmacoes_bloqueadas": []
+  }
+}

@@ -1,0 +1,20 @@
+# segredos
+.env
+
+# ambientes
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# bancos gerados em tempo de execução (recriados por python -m src.db)
+dados/*.db
+dados/*.db-*
+dados/SUSPENSO
+
+# saídas locais que não são evidência citada nos documentos
+logs/execucoes/
+logs/traces/
+logs_bkp/
+evals/resultados/_tmp*/

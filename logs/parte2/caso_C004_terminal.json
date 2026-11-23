@@ -1,0 +1,158 @@
+{
+  "timestamp": "2026-10-18T12:17:18",
+  "commit": "sem-git",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "thread_id": "C004:9a2bbe3e",
+  "contrato": "C004",
+  "mensagem_inicial": "Sem internet nenhuma, a luz está vermelha.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": true
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "contrato": "C004",
+        "status": "OFFLINE",
+        "sinal_dbm": -30.0,
+        "falha_fisica_provavel": true
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C004"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "obter_data_atual",
+      "args": {},
+      "resultado": {
+        "hoje": "2026-10-18",
+        "amanha": "2026-10-19"
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "propor_visita",
+      "args": {
+        "data": "2026-10-19"
+      },
+      "resultado": {
+        "proposta": true,
+        "contrato": "C004",
+        "data": "2026-10-19"
+      }
+    },
+    {
+      "tipo": "aprovacao_humana",
+      "decisao": "editar",
+      "data_proposta": "2026-10-19",
+      "data_final": "2026-10-22",
+      "motivo": null,
+      "resultado": {
+        "contrato": "C004",
+        "data": "2026-10-22",
+        "status": "AGENDADA",
+        "ja_existia": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "A visita técnica foi **agendada para 22/10/2026**. Um técnico irá até você para resolver a falha física na linha.\n\nEnquanto isso, não há nada que você possa fazer por sua conta — a luz vermelha e o sinal de -30 dBm indicam um problema no cabo ou no equipamento que só a visita resolve.\n\nPosso ajudar em mais alguma coisa?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "3b3689b1f6c7a91a",
+          "ja_existia": true
+        },
+        "fato": {
+          "chave_idem": "91d368cf52250420",
+          "ja_existia": true
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [
+    {
+      "payload": {
+        "acao": "agendar_visita_tecnico",
+        "contrato": "C004",
+        "data_proposta": "2026-10-19",
+        "consequencia": "desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho",
+        "opcoes": [
+          "aprovar",
+          "rejeitar",
+          "editar"
+        ],
+        "janela_edicao": [
+          "2026-10-18",
+          "2026-11-01"
+        ],
+        "prazo_segundos": 900
+      },
+      "resposta": {
+        "decisao": "editar",
+        "data": "2026-10-22"
+      }
+    }
+  ],
+  "voltas": 4,
+  "tokens": 6472,
+  "segundos_ativos": 3.52,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "A visita técnica foi **agendada para 22/10/2026**. Um técnico irá até você para resolver a falha física na linha.\n\nEnquanto isso, não há nada que você possa fazer por sua conta — a luz vermelha e o sinal de -30 dBm indicam um problema no cabo ou no equipamento que só a visita resolve.\n\nPosso ajudar em mais alguma coisa?",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "conferir_queda_bairro",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "obter_data_atual",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "propor_visita",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "agendar_visita_tecnico",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": []
+  }
+}

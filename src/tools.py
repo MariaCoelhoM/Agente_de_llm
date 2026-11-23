@@ -14,15 +14,6 @@ def _hoje() -> datetime.date:
     return datetime.date.today()
 
 
-def obter_data_atual() -> dict:
-    """Leitura, sem argumentos. O modelo não tem relógio; chama isso sempre
-    que precisar saber a data de hoje, por exemplo antes de propor uma
-    visita técnica para o dia seguinte (regra do domínio, case §2.1)."""
-    hoje = _hoje()
-    amanha = hoje + datetime.timedelta(days=1)
-    return {"hoje": hoje.isoformat(), "amanha": amanha.isoformat()}
-
-
 def testar_linha(contrato: str) -> dict:
     """Leitura. Não altera nada."""
     conn = db.conectar()
@@ -174,14 +165,6 @@ FERRAMENTAS_OPENAI = [
     {
         "type": "function",
         "function": {
-            "name": "obter_data_atual",
-            "description": "Retorna a data de hoje e a de amanhã. Chame antes de propor uma visita técnica — você não tem relógio.",
-            "parameters": {"type": "object", "properties": {}},
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "testar_linha",
             "description": "Roda o teste automático de sinal na linha do cliente. Leitura, não altera nada.",
             "parameters": {
@@ -219,8 +202,8 @@ FERRAMENTAS_OPENAI = [
             "description": (
                 "Propõe uma visita técnica para hoje ou amanhã. Não agenda: o sistema "
                 "pausa e pergunta ao cliente, que aprova, rejeita ou troca a data. "
-                "Só use depois de testar_linha confirmar falha física. Chame "
-                "obter_data_atual antes e use a data de amanhã."
+                "Só use depois de testar_linha confirmar falha física. Use a data "
+                "de amanhã, que está no prompt de sistema."
             ),
             "parameters": {
                 "type": "object",
@@ -248,10 +231,11 @@ FERRAMENTAS_OPENAI = [
     },
 ]
 
+# Cinco ferramentas visíveis ao modelo (obter_data_atual saiu na Parte 3: a
+# data de hoje e a de amanhã vão no prompt de sistema, montadas pelo código).
 # O modelo NÃO tem agendar_visita_tecnico: só propor_visita. O agendamento é
 # executado pelo nó `agendar` do grafo, depois da aprovação humana.
 FUNCOES = {
-    "obter_data_atual": obter_data_atual,
     "testar_linha": testar_linha,
     "conferir_queda_bairro": conferir_queda_bairro,
     "reiniciar_conexao": reiniciar_conexao,

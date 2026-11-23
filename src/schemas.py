@@ -25,6 +25,9 @@ class RespostaAtendimento(BaseModel):
     encaminhar_humano: bool = False
     motivo_parada: str
     citacoes_invalidas: List[str] = Field(default_factory=list)
+    afirmacoes_bloqueadas: List[str] = Field(
+        default_factory=list,
+        description="Afirmações do modelo que a trajetória não sustenta (controle C4); o texto foi substituído.")
 
     @model_validator(mode="after")
     def _coerencia(self):

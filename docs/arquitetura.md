@@ -1,4 +1,6 @@
-# Arquitetura do sistema (Parte 2)
+# Arquitetura do sistema (Partes 2 e 3)
+
+> **O que mudou na Parte 3** (detalhe e commits em `docs/mudancas.md`): o sistema virou um **chatbot de vários turnos** (`src/chat.py`). Cada mensagem do cliente é uma nova invocação do mesmo grafo sobre o mesmo `thread_id`; o grafo e a topologia são os mesmos da Parte 2 (a saída de `conferir_grafo.py` em §6.4 não mudou). Entraram: identidade pelo canal (telefone → contrato), orçamento por turno, janela de conversa, verificador de afirmações no `finalizar`, memória sanitizada, suspensão do agente (kill switch), tratamento de exceção de ferramenta e o trace OpenTelemetry. `obter_data_atual` saiu (a data vai no prompt): são 5 ferramentas visíveis ao modelo.
 
 ## 1. Visão geral
 
@@ -11,10 +13,13 @@ Há um único nó que chama o modelo (`agente`). Todos os outros nós, e todas a
 Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condicional, decidida por regra em código. `==>` aresta incondicional. `##` ponto em que o sistema para e espera uma pessoa.
 
 ```
- mensagem + contrato (da sessão)
+ cliente digita no chat  ──>  src/chat.py (Conversa)  [C]
+   telefone do canal ──> tabela canais ──> contrato        (C1: o texto não troca o contrato)
+   pausa pendente? ──> a mensagem é RESPOSTA à aprovação, lida por regra  ──> Command(resume)
+   senão ──> um TURNO: grafo.invoke({mensagem}, thread_id)  ── span raiz invoke_agent
           |
           v
-   +--------------+   (c) mensagem vazia
+   +--------------+   (c) mensagem vazia / agente SUSPENSO / > 12 turnos
    | entrada  [C] |------------------------------------------+
    +--------------+                                          |
           | (c) segue                                        |
@@ -27,18 +32,20 @@ Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condic
           v                                                  |
    +--------------+  (c) cobrança/cancelamento/atendente     |
    | triagem  [C] |----------------------------------------->+
-   +--------------+  (c) sem palavra de sintoma ----+        |
+   +--------------+  (c) sem sintoma, SÓ no 1º turno -+      |
           | (c) suporte                             |        |
           v                                         |        |
    +--------------+  (c) estouro de orçamento       |        |
    |              |  ou erro fatal do modelo        |        |
    | agente   [M] |-------------------------------->+------->+
+   | (janela: 4   |                                 |        |
+   |  turnos)     |                                 |        |
    |              |<--------------------+           |        |
    +--------------+                     |           |        |
       | (c) pediu ferramenta             |           |        |
       v                                  | (c) volta |        |
    +--------------+  (c) laço, teto de   | ao agente |        |
-   | ferramentas  |  passos               |           |        |
+   | ferramentas  |  passos, exceção      |           |        |
    |         [C]  |---------------------->+---------->+        |
    +--------------+                       |           |        |
       | (c) propor_visita válida          |           |        |
@@ -56,11 +63,14 @@ Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condic
                                                  ^      | encaminhar_humano |
                                                  |      |              [C]  |
                                                  +<==== +-------------------+
-          finalizar [C]: valida fontes e contrato de saída (Pydantic)
-          ==> registrar_memoria [C]: grava memória por regra ==> FIM
+          finalizar [C]: valida fontes e contrato de saída (Pydantic) e confere
+                         as afirmações "agendei"/"resolvido" contra a trajetória (C4)
+          ==> registrar_memoria [C]: grava memória por regra, sanitizada (C3) ==> FIM DO TURNO
+          ## Na pausa, o turno termina com motivo `aguardando_humano`; a próxima
+             mensagem do cliente retoma o nó `aprovacao` (checkpoint SQLite).
 
  Ferramentas (chamadas pelo nó `ferramentas`, nunca pelo modelo direto no banco):
-   obter_data_atual, testar_linha, conferir_queda_bairro   leitura
+   testar_linha, conferir_queda_bairro                      leitura
    reiniciar_conexao                                        escrita reversível
    propor_visita                                            validação pura, sem escrita
    consultar_base_conhecimento                              leitura; índice BM25 sobre dados/corpus
@@ -68,7 +78,9 @@ Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condic
    agendar_visita_tecnico   escrita irreversível; só o nó `agendar` chama, depois da pessoa
  Armazenamentos: provedor.db (clientes, modems, visitas), memoria.db, checkpoints.db (SQLite)
 
- Condições de parada: ver §4.5 (11 motivos). Todo caminho passa por finalizar.
+ Condições de parada: ver §4.5 (15 motivos). Todo caminho passa por finalizar.
+ Trace: um span `chat <modelo>` por chamada do nó agente, um `execute_tool <nome>` por
+ ferramenta, sob a raiz do turno (src/observabilidade.py).
 ```
 
 ## 3. Mapa de arquivos
@@ -83,8 +95,12 @@ Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condic
 | src/rag.py | BM25, corte, portão de suficiência |
 | src/memoria.py | três memórias, escrita por regra, remoção |
 | src/schemas.py | contrato de saída (Pydantic) |
-| src/agent.py | executa o grafo, trata a pausa, grava o log |
-| src/prompts/ | suporte_v2.md e procedural.md, carregados em tempo de execução |
+| src/chat.py | **Parte 3**: a conversa (turnos, identidade pelo canal, aprovação em linguagem natural, trace raiz, log) e o chat de terminal |
+| src/agent.py | atendimento de uma mensagem (interface da Parte 2), sobre a mesma `Conversa` |
+| src/observabilidade.py | **Parte 3**: spans OpenTelemetry GenAI, exportador em arquivo e OTLP |
+| src/modelo_regras.py | **Parte 3**: substituto determinístico do modelo, para rodar sem chave e para a suíte |
+| src/prompts/ | suporte_v3.md e procedural.md, carregados em tempo de execução (v1 e v2 ficam como histórico) |
+| evals/ | **Parte 3**: golden dataset, suíte, comparação, juiz, métricas |
 | conferir_grafo.py | imprime nós e arestas do grafo que o sistema executa |
 
 ## 4. As seis perguntas
@@ -93,7 +109,6 @@ Legenda: `[M]` o nó chama o modelo. `[C]` o nó é código. `(c)` aresta condic
 
 | Ferramenta | O que faz | Tipo | Reversível |
 |---|---|---|---|
-| obter_data_atual | devolve a data de hoje | leitura | não se aplica |
 | testar_linha | lê status e sinal (dBm) do modem do contrato | leitura | não se aplica |
 | conferir_queda_bairro | lê se o bairro do cliente está em manutenção | leitura | não se aplica |
 | consultar_base_conhecimento | busca trechos nos manuais; devolve `suficiente=false` se nada cobre | leitura | não se aplica |
@@ -107,6 +122,8 @@ O contrato nunca é digitado pelo modelo: o grafo injeta o contrato da sessão n
 
 ### 4.2 O laço
 
+Há dois laços. O de fora é a **conversa**: cada mensagem do cliente é um turno (uma invocação do grafo); o turno seguinte existe porque o cliente escreveu de novo, e acaba no transbordo, no teto de 12 turnos ou quando o cliente sai. O de dentro é o do **agente**, dentro de um turno:
+
 A cada volta, o nó `agente` monta as mensagens (prompt do sistema, contrato e data, memória procedural, contexto de longo prazo, conversa) e chama o modelo uma vez. Se a resposta traz pedidos de ferramenta, a aresta leva ao nó `ferramentas`, que executa cada um em sequência, registra o resultado na trajetória e devolve ao `agente`. Se a resposta não traz ferramenta, o motivo vira `resposta_final` e a execução segue para `finalizar`.
 
 A volta seguinte existe porque o modelo pediu ferramenta e nenhum limite foi atingido. Antes de cada chamada ao modelo, `guardas.verificar_orcamento` confere voltas, tokens e tempo.
@@ -119,12 +136,14 @@ Tudo que o código precisa para decidir é campo explícito de `EstadoAtendiment
 
 | Teto | Valor | Onde é verificado |
 |---|---|---|
-| chamadas ao modelo por atendimento | 6 | `verificar_orcamento`, antes de cada chamada |
-| chamadas de ferramenta por atendimento | 8 | nó `ferramentas` |
-| testes de linha por atendimento | 3 | nó `ferramentas` (regra do domínio) |
-| tokens acumulados | 12000 | `verificar_orcamento` |
-| tempo de máquina | 120 s, sem contar a espera humana | `verificar_orcamento` |
-| mesma ferramenta e mesmos argumentos | 3 vezes sem escrita no meio | `detectar_laco` |
+| chamadas ao modelo por **turno** | 6 | `verificar_orcamento`, antes de cada chamada |
+| chamadas de ferramenta por turno | 8 | nó `ferramentas` |
+| testes de linha por **conversa** (= atendimento) | 3 | nó `ferramentas` (regra do domínio) |
+| tokens no turno | 12000 | `verificar_orcamento` (diferença desde o início do turno) |
+| tokens na conversa | 60000 | `verificar_orcamento` → `conversa_longa` |
+| mensagens do cliente por conversa | 12 | nó `entrada` → `conversa_longa` |
+| tempo de máquina no turno | 120 s, sem contar a espera humana | `verificar_orcamento` |
+| mesma ferramenta e mesmos argumentos | 3 vezes no turno, sem escrita diferente no meio (corrigido na Parte 3: o reinício repetido passou a contar) | `detectar_laco` |
 | passos do grafo | 25 (`RECURSION_LIMIT`, declarado) | LangGraph, tratado em `agent.py` |
 | espera da aprovação | 900 s | `PRAZO_APROVACAO_SEGUNDOS` |
 
@@ -147,14 +166,20 @@ Toda execução acaba com um `motivo_parada`, definido em `src/guardas.py`:
 | aprovacao_expirada | o cliente não respondeu em 900 s | sim |
 | erro_fatal_llm | erro do modelo que repetir não resolve | sim |
 | recursion_limit | o grafo passou de 25 passos | sim |
+| aguardando_humano | **(P3)** o turno parou no ponto de aprovação; não é fim de conversa | não |
+| conversa_longa | **(P3)** mais de 12 mensagens ou 60000 tokens na conversa | sim |
+| agente_suspenso | **(P3)** existe `dados/SUSPENSO` (kill switch); nem modelo nem ferramenta são chamados | sim |
+| ferramenta_indisponivel | **(P3)** uma ferramenta levantou exceção (ex.: banco travado) | sim |
 
 Erros recuperáveis do modelo (limite de taxa, rede, timeout) têm até 3 tentativas. Qualquer outro erro é fatal. Quando a resposta é `resposta_final` mas falta fonte verificável, o campo `suficiente` do contrato de saída fica falso (`sem_fonte`, `citacao_nao_verificada` ou `fora_do_corpus`), e o motivo de parada continua `resposta_final`.
 
 ### 4.5.1 O humano
 
+Na Parte 3 a pausa acontece **dentro do chat**: o cartão de aprovação (montado pelo código, `src/chat.py`, `cartao_aprovacao`) aparece como mensagem do agente, e a próxima mensagem do cliente é lida por regra (`interpretar_aprovacao`): "sim", "não" ou uma data ("dia 22", "20/11", "2026-11-20"). O modelo não interpreta essa resposta. Três respostas não entendidas viram `rejeitar`.
+
 O sistema chama o próprio cliente, e não um atendente: a pessoa que sabe se a data serve e que arca com a visita. Ela vê a ação (`agendar_visita_tecnico`), o contrato, a data proposta, a consequência (desloca um técnico, tem custo, não é desfeito sozinho), as opções (aprovar, rejeitar, editar) e a janela de edição (de hoje até 14 dias). Detalhes em `docs/humano.md`.
 
-Se ela não responde em 900 s, a decisão vira `expirou`: nada é agendado, o motivo é `aprovacao_expirada` e o cliente recebe um texto dizendo que nada foi agendado e que será encaminhado a um atendente. Uma resposta fora do formato vira `rejeitar`. Uma data editada fora da janela também vira `rejeitar`.
+Se ela não responde em 900 s, a decisão vira `expirou`: nada é agendado, o motivo é `aprovacao_expirada` e o cliente recebe um texto dizendo que nada foi agendado e que será encaminhado a um atendente. Uma resposta fora do formato é perguntada de novo, e na terceira vira `rejeitar`. Uma data editada fora da janela também vira `rejeitar`.
 
 ## 5. A defesa do nível de autonomia
 
@@ -270,9 +295,14 @@ São 12 nós (contando início e fim) e 19 arestas. Todas as arestas do diagrama
 
 | Campo | Tipo | Quem escreve | Quem lê | De onde veio |
 |---|---|---|---|---|
-| thread_id | str | `agent.py` (entrada do grafo) | checkpointer, log | gerado: `contrato:uuid8` |
-| contrato | str | `agent.py` | ferramentas, agendar, carregar_memoria, registrar_memoria, agente (prompt) | a sessão, não o modelo |
-| mensagem | str | `agent.py` | entrada, triagem, carregar_memoria, registrar_memoria | texto do cliente |
+| thread_id | str | `chat.py` (entrada do grafo, uma vez por conversa) | checkpointer, log, trace (`gen_ai.conversation.id`) | gerado: `contrato:uuid8` |
+| contrato | str | `chat.py` | ferramentas, agendar, carregar_memoria, registrar_memoria, agente (prompt) | **o telefone do canal** (P3, C1), não o texto nem o modelo |
+| mensagem | str | `chat.py`, a cada turno | entrada, triagem, carregar_memoria | texto do cliente no turno |
+| mensagem_inicial | str | entrada (só no 1º turno) | registrar_memoria | **(P3)** o relato que vira o sintoma da memória |
+| turno | int | entrada | triagem, carregar_memoria, trace | **(P3)** contador de mensagens do cliente |
+| tokens_inicio_turno, segundos_inicio_turno | int, float | entrada | verificar_orcamento | **(P3)** fotografia dos acumulados no início do turno: o orçamento é por turno |
+| tokens_entrada, tokens_saida | int, reducer soma | agente | chat.py (trace, custo) | **(P3)** uso informado pelo provedor, separado |
+| encerrada | bool | finalizar | chat.py | **(P3)** conversa transferida para humano |
 | hoje | str | entrada | carregar_memoria, ferramentas, aprovacao, agente (prompt), registrar_memoria | relógio do sistema |
 | mensagens | lista, reducer soma | entrada, agente, ferramentas, agendar | agente | cliente, modelo e resultados de ferramenta |
 | trajetoria | lista, reducer soma | todos os nós, cada um com o que é seu | ferramentas (laço, testes), finalizar, registrar_memoria, log | eventos do que aconteceu |
@@ -296,7 +326,8 @@ Há campos sem reducer escritos por mais de um nó (`voltas`, `passos_ferramenta
 |---|---|---|
 | mensagens | soma de listas | cada nó entrega só as mensagens novas |
 | trajetoria | soma de listas | vários nós acrescentam eventos; nenhum pode apagar o dos outros |
-| tokens | soma | o orçamento é o total acumulado |
+| tokens | soma | o teto da conversa é o total acumulado; o do turno é a diferença desde `tokens_inicio_turno` |
+| tokens_entrada, tokens_saida | soma | o custo da conversa é a soma; o do turno é a diferença |
 | segundos_ativos | soma | idem, em tempo |
 
 Demonstração: `python -m scripts.demo_reducer` monta um grafo de teste com dois nós paralelos escrevendo no mesmo campo. Sem reducer, o LangGraph 1.2.16 levanta `InvalidUpdateError` ("Can receive only one value per step"). Com `operator.add`, as duas escritas se somam. A saída do script está em `docs/grafo.md` §7.

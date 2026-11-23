@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-11-12T21:40:09",
+  "versao_sistema": "3.0.0",
+  "commit": "sem-git",
+  "modelo": "regras-v1",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v3.md",
+      "sha256": "4bc31ccbd428"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C001:2bb48356",
+  "contrato": "C001",
+  "identidade": {
+    "contrato": "C001",
+    "origem": "canal"
+  },
+  "mensagem_inicial": "Como faço para abrir portas no roteador para jogar online?",
+  "turnos": [
+    {
+      "cliente": "Como faço para abrir portas no roteador para jogar online?",
+      "motivo": "resposta_final",
+      "trace_id": "ab49fafda32435077fb50941e9fd6c00",
+      "tokens_entrada": 1833,
+      "tokens_saida": 44,
+      "saida": {
+        "resultado": "Não encontrei essa informação nos manuais do suporte técnico. Posso encaminhar você para um atendente humano.",
+        "fontes": [],
+        "suficiente": false,
+        "motivo_insuficiencia": "fora_do_corpus",
+        "encaminhar_humano": true,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    }
+  ],
+  "trajetoria": [
+    {
+      "tipo": "turno",
+      "n": 1
+    },
+    {
+      "tipo": "memoria",
+      "carregada": true
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "consultar_base_conhecimento",
+      "args": {
+        "pergunta": "Como faço para abrir portas no roteador para jogar online?"
+      },
+      "resultado": {
+        "suficiente": false,
+        "motivo": "nada_relevante_no_corpus",
+        "trechos": []
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Não encontrei isso nos manuais do suporte técnico. Posso encaminhar você para um atendente humano."
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "ecd4f0aadf4ae81b",
+          "ja_existia": false
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 2,
+  "tokens": 1877,
+  "tokens_entrada": 1833,
+  "tokens_saida": 44,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "Não encontrei essa informação nos manuais do suporte técnico. Posso encaminhar você para um atendente humano.",
+    "fontes": [],
+    "suficiente": false,
+    "motivo_insuficiencia": "fora_do_corpus",
+    "encaminhar_humano": true,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": [],
+    "afirmacoes_bloqueadas": []
+  }
+}

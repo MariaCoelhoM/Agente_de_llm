@@ -24,7 +24,10 @@ def varrer(contrato: str):
                         if n:
                             achados.append(f"{caminho}: {tabela}.{coluna} ({n})")
                 conn.close()
-            elif nome.endswith((".json", ".md", ".txt")) and "tests" not in pasta and "docs" not in pasta:
+            elif (nome.endswith((".json", ".jsonl", ".md", ".txt")) and "tests" not in pasta
+                  and "docs" not in pasta and "evals" not in pasta and "parte2" not in pasta):
+                # evals/ e logs/parte2/ guardam execuções de dados SINTÉTICOS citadas como evidência;
+                # num sistema com dado real, elas também entrariam na varredura (docs/seguranca.md §4).
                 try:
                     if contrato in open(caminho, encoding="utf-8").read():
                         achados.append(caminho)

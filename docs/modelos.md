@@ -20,6 +20,20 @@ importam pouco aqui — a conversa é curta e não há imagem nesta entrega
 | Onde roda                              | API pública Mistral                                       | API pública OpenAI | API pública Groq |
 | Política de dados                      | dado do cliente trafega para a Mistral; não há residência de dados no Brasil | trafega para a OpenAI, mesma ressalva | trafega para a Groq, mesma ressalva |
 
+**O modelo escolhido, nos mesmos eixos** (devolutiva da Parte 1: a análise
+precisa cobrir o modelo em uso, que não era nenhum dos três acima):
+
+| Eixo | Qwen3.8 27B (`qwen/qwen3.8-27b`, Groq) |
+|---|---|
+| Janela de contexto | suficiente para o caso (o maior turno medido na Parte 2 usou ~6.500 tokens somando todas as chamadas) |
+| Tool calling / saída estruturada | sim — rodou os 10 casos da Parte 2 com tool calling (`logs/parte2/`) |
+| Multimídia | não |
+| Raciocínio | suficiente: seguiu a regra do bairro em manutenção e a de propor visita na falha física |
+| Custo (entrada / saída, por 1M tokens) | **US$ 0,80 / US$ 4,00** (consultado em 12/11/2026, `docs/fontes.md`) — o mais caro dos quatro na saída |
+| Latência | baixa (Groq) — sem medição própria com o modelo real nesta entrega: ver LACUNA em `docs/observabilidade.md` |
+| Onde roda | API pública Groq; **modelo em preview** ("evaluation only") — pode ser retirado sem aviso |
+| Política de dados | trafega para a Groq; mesma ressalva dos outros |
+
 Preços consultados em setembro de 2026 nas páginas oficiais de cada
 provedor (ver `docs/fontes.md`) — conferir antes de rodar em produção, pois
 mudam com frequência.
@@ -45,6 +59,31 @@ GPT-4o mini ≈ US$ 4,90/mês; Llama 3.1 8B ≈ US$ 1,10/mês. Nos três casos o
 custo de rodar é irrelevante perto do ganho operacional estimado — a decisão
 não deve ser guiada só por preço.
 
+### 2.1 A conta do modelo escolhido, com tokens medidos
+
+Os 9 logs da Parte 2 que chamaram o modelo (`logs/parte2/*.json`, campo
+`tokens`) somam, por execução: 6005, 4513, 6498, 5924, 6472, 2850, 2781,
+3183 e 3010 tokens — **média de 4.582 tokens por execução** (entrada + saída;
+os logs da Parte 2 não separavam os dois). Supondo 90% de entrada e 10% de
+saída (o prompt de sistema e o histórico dominam; a saída é curta):
+
+```
+entrada: 4.124 tokens × US$ 0,80/1M = US$ 0,0033
+saída:     458 tokens × US$ 4,00/1M = US$ 0,0018
+custo por execução                  ≈ US$ 0,0051
+```
+
+- por 100 execuções: ≈ **US$ 0,51**
+- por mês, no volume do case (5.400 chamados): ≈ **US$ 27,50**
+- **no semestre do grupo** (desenvolvimento e testes): ~10 rodadas da suíte
+  de avaliação × 41 execuções + ~300 execuções manuais ≈ 710 execuções ≈
+  **US$ 3,60** — coberto pelo nível gratuito da Groq, que limita requisições
+  por minuto, não dinheiro.
+
+Desde a Parte 3 o trace separa tokens de entrada e de saída
+(`gen_ai.usage.input_tokens` / `output_tokens`) e calcula `app.custo_usd` por
+execução; `python -m evals.metricas` reporta o custo medido por versão.
+
 ## 3. A verificação mínima
 
 O comparativo do §1 é teórico (documentação e preço publicados pelos três
@@ -56,7 +95,7 @@ do `docs/case.md` §2.8:
 
 | Caso | Ação esperada | Ação tomada pelo agente | Resultado |
 |---|---|---|---|
-| C001 (simples) | reiniciar e confirmar que voltou | testou a linha, reiniciou, testou de novo, confirmou ONLINE | ✅ correto |
+| C001 (simples) | reiniciar e confirmar que voltou | **Parte 1:** o log da Parte 1 termina com o agente perguntando "Posso tentar reiniciar a conexão à distância?", sem chamar `reiniciar_conexao` — a versão anterior desta tabela afirmava o contrário, e estava errada (devolutiva da Parte 1). **Parte 2:** `logs/parte2/caso_C001_feliz.json` mostra `testar_linha → conferir_queda_bairro → reiniciar_conexao → testar_linha` e a resposta ONLINE | ✅ correto na Parte 2 (com evidência no log) |
 | C002 (divergência) | não fechar como "resolvido" sem investigar; achar a causa real | descobriu o bairro pelo contrato, viu que estava em manutenção, explicou a causa real e recusou agendar visita individual | ✅ correto |
 | C999 (inexistente) | tratar o erro como dado, sem quebrar, pedir o contrato certo | recebeu `contrato_nao_encontrado` e pediu o número certo ao cliente | ✅ correto |
 | C005 (bairro em manutenção) | não agendar visita individual | na primeira tentativa ofereceu agendar mesmo assim (inconsistente com C002); depois de ajustar o `SYSTEM_PROMPT` para proibir isso explicitamente, passou a recusar do mesmo jeito que o C002 | ✅ correto, depois do ajuste — ver §4 |
@@ -65,10 +104,20 @@ do `docs/case.md` §2.8:
 Os 5 casos do domínio (`docs/case.md` §2.8) estão validados para o modelo
 escolhido.
 
-Comparar contra Mistral Small e GPT-4o mini fica registrado como um passo
-que o grupo pode fazer se sobrar tempo — não é bloqueante para a entrega,
-já que a decisão final (§4) foi tomada por restrição prática (custo zero
-sem cartão), não por qualidade comparada entre os três.
+**LACUNA (devolutiva da Parte 1, item 5c): os três candidatos não foram
+rodados.** O instrumento para fazer isso agora existe: a suíte de avaliação
+roda o golden dataset contra qualquer modelo compatível trocando duas
+variáveis de ambiente.
+
+```bash
+# um modelo por vez, no .env: LLM_BASE_URL, OPENAI_API_KEY, LLM_MODEL
+python -m evals.rodar --versao 3.0.0 --modelo real --nome 3.0.0_qwen3.8-27b
+python -m evals.rodar --versao 3.0.0 --modelo real --nome 3.0.0_mistral-small
+python -m evals.comparar evals/resultados/3.0.0_qwen3.8-27b evals/resultados/3.0.0_mistral-small
+```
+
+Enquanto essas rodadas não forem commitadas, a escolha continua sendo por
+restrição prática (custo zero sem cartão, §4), e não por qualidade medida.
 
 ## 4. A decisão
 
@@ -114,3 +163,11 @@ aceitando ter que gerenciar cobrança; ou (b) o limite de requisições por
 minuto da Groq se mostrar baixo demais para o volume de teste do grupo —
 aí tentaríamos o Mistral Small de novo, desta vez já sabendo que é preciso
 ativar o Pay-as-you-go antes de testar.
+## 5. Credencial, gasto e dados no provedor
+
+Registrado aqui porque o *model card* (§3, §5) e o README apontam para esta seção. Fonte: documentação da Groq consultada pelo grupo no exercício da Aula 12 (`exercicios/model-card.md`), links em `docs/fontes.md`.
+
+- **Credencial:** no nível gratuito, a chave de API da Groq vale para a conta inteira; não há escopo granular por modelo ou recurso. O controle possível é operacional (rotacionar e revogar a chave se vazar) e, desde a Parte 3, o controle C2: a chave só é enviada a hosts da lista (`docs/seguranca.md`).
+- **Gasto:** a conta é do nível gratuito, sem cartão cadastrado; o teto de gasto configurável (https://console.groq.com/docs/spend-limits) só existe em planos pagos. Sem forma de pagamento, a execução não gera cobrança; o limite efetivo é o de requisições por minuto. Falta conferir no console que nenhum cartão foi adicionado (LACUNA L3 do *model card*).
+- **Dados:** por padrão a Groq não retém dado de inferência; a exceção é monitoramento de confiabilidade e abuso, por até 30 dias, em servidores nos EUA (https://console.groq.com/docs/your-data).
+- **Retenção dos nossos registros:** 30 dias para logs e traces locais (`scripts/limpar_logs_antigos.py`), alinhado à janela do provedor: depois de 30 dias não sobra, em nenhum dos dois lados, registro da conversa que permita reconstruir uma decisão — o que é aceitável para um protótipo com dados sintéticos e teria de ser revisto com dado real.

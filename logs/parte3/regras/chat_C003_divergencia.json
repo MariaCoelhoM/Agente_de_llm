@@ -1,0 +1,216 @@
+{
+  "timestamp": "2026-11-12T21:40:09",
+  "versao_sistema": "3.0.0",
+  "commit": "sem-git",
+  "modelo": "regras-v1",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v3.md",
+      "sha256": "4bc31ccbd428"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C003:8fbc3ad0",
+  "contrato": "C003",
+  "identidade": {
+    "contrato": "C003",
+    "origem": "canal"
+  },
+  "mensagem_inicial": "Minha internet caiu, nada navega aqui em casa.",
+  "turnos": [
+    {
+      "cliente": "Minha internet caiu, nada navega aqui em casa.",
+      "motivo": "resposta_final",
+      "trace_id": "1851cb6cd787aad46b4394d59346c745",
+      "tokens_entrada": 2500,
+      "tokens_saida": 99,
+      "saida": {
+        "resultado": "O teste mostra a sua linha ONLINE, com sinal de -19.0 dBm, e não há manutenção no bairro. Como você diz que não navega, o problema pode estar no Wi-Fi ou no aparelho: teste em outro aparelho, de preferência no cabo, e me diga o resultado.",
+        "fontes": [
+          {
+            "tipo": "ferramenta",
+            "id": "conferir_queda_bairro",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "testar_linha",
+            "detalhe": null
+          }
+        ],
+        "suficiente": true,
+        "motivo_insuficiencia": null,
+        "encaminhar_humano": false,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    },
+    {
+      "cliente": "Testei no notebook ligado no cabo e também não vai.",
+      "motivo": "resposta_final",
+      "trace_id": "feb353310251ed22aa46d34b3e4e6d9b",
+      "tokens_entrada": 2821,
+      "tokens_saida": 88,
+      "saida": {
+        "resultado": "A linha continua ONLINE (-19.0 dBm) e mesmo assim nada navega, inclusive no cabo. Isso precisa de um técnico de suporte avançado: vou registrar o que já testamos e encaminhar o seu atendimento.",
+        "fontes": [
+          {
+            "tipo": "ferramenta",
+            "id": "conferir_queda_bairro",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "testar_linha",
+            "detalhe": null
+          }
+        ],
+        "suficiente": true,
+        "motivo_insuficiencia": null,
+        "encaminhar_humano": false,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    }
+  ],
+  "trajetoria": [
+    {
+      "tipo": "turno",
+      "n": 1
+    },
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C003"
+      },
+      "resultado": {
+        "contrato": "C003",
+        "status": "ONLINE",
+        "sinal_dbm": -19.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C003"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "O teste mostra a sua linha ONLINE, com sinal de -19.0 dBm, e não há manutenção no bairro. Como você diz que não navega, o problema pode estar no Wi-Fi ou no aparelho: teste em outro aparelho, de preferência no cabo, e me diga o resultado."
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "63418dd6fd0611c0",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "f956669d776d006b",
+          "ja_existia": false
+        }
+      }
+    },
+    {
+      "tipo": "turno",
+      "n": 2
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C003"
+      },
+      "resultado": {
+        "contrato": "C003",
+        "status": "ONLINE",
+        "sinal_dbm": -19.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C003"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "A linha continua ONLINE (-19.0 dBm) e mesmo assim nada navega, inclusive no cabo. Isso precisa de um técnico de suporte avançado: vou registrar o que já testamos e encaminhar o seu atendimento."
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "63418dd6fd0611c0",
+          "ja_existia": true
+        },
+        "fato": {
+          "chave_idem": "f956669d776d006b",
+          "ja_existia": true
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 3,
+  "tokens": 5508,
+  "tokens_entrada": 5321,
+  "tokens_saida": 187,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "A linha continua ONLINE (-19.0 dBm) e mesmo assim nada navega, inclusive no cabo. Isso precisa de um técnico de suporte avançado: vou registrar o que já testamos e encaminhar o seu atendimento.",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "conferir_queda_bairro",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": [],
+    "afirmacoes_bloqueadas": []
+  }
+}

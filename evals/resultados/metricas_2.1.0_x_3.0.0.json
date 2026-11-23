@@ -1,0 +1,114 @@
+{
+  "2.1.0": {
+    "execucoes": 41,
+    "conversas": 30,
+    "latencia_ms_p50": 25.6,
+    "latencia_ms_p95": 39.9,
+    "custo_usd_por_execucao": 0.001758,
+    "custo_usd_total": 0.072072,
+    "tokens_entrada_media": 1931.3,
+    "tokens_saida_media": 53.2,
+    "motivos_de_termino": {
+      "resposta_final": 27,
+      "aguardando_humano": 9,
+      "entrada_incompleta": 2,
+      "aprovacao_expirada": 1,
+      "encaminhado_humano": 1,
+      "laco_detectado": 1
+    },
+    "erro_por_ferramenta": {
+      "conferir_queda_bairro": {
+        "erros": 1,
+        "chamadas": 20,
+        "taxa_%": 5.0
+      },
+      "consultar_base_conhecimento": {
+        "erros": 0,
+        "chamadas": 3,
+        "taxa_%": 0.0
+      },
+      "propor_visita": {
+        "erros": 0,
+        "chamadas": 9,
+        "taxa_%": 0.0
+      },
+      "reiniciar_conexao": {
+        "erros": 1,
+        "chamadas": 8,
+        "taxa_%": 12.5
+      },
+      "testar_linha": {
+        "erros": 1,
+        "chamadas": 26,
+        "taxa_%": 3.8
+      }
+    },
+    "respostas_corrigidas_pelo_verificador": 0,
+    "slo": {
+      "sli": "execuções que terminam bem / execuções válidas",
+      "boas": 39,
+      "validas": 41,
+      "valor_%": 95.1,
+      "objetivo_%": 95.0,
+      "janela": "7 dias",
+      "cumprido": true,
+      "orcamento_de_erro_consumido_%": 98.0
+    }
+  },
+  "3.0.0": {
+    "execucoes": 41,
+    "conversas": 30,
+    "latencia_ms_p50": 27.7,
+    "latencia_ms_p95": 38.7,
+    "custo_usd_por_execucao": 0.001817,
+    "custo_usd_total": 0.074487,
+    "tokens_entrada_media": 1996.1,
+    "tokens_saida_media": 55.0,
+    "motivos_de_termino": {
+      "resposta_final": 26,
+      "aguardando_humano": 9,
+      "aprovacao_expirada": 2,
+      "entrada_incompleta": 2,
+      "encaminhado_humano": 1,
+      "laco_detectado": 1
+    },
+    "erro_por_ferramenta": {
+      "conferir_queda_bairro": {
+        "erros": 1,
+        "chamadas": 21,
+        "taxa_%": 4.8
+      },
+      "consultar_base_conhecimento": {
+        "erros": 0,
+        "chamadas": 3,
+        "taxa_%": 0.0
+      },
+      "propor_visita": {
+        "erros": 0,
+        "chamadas": 9,
+        "taxa_%": 0.0
+      },
+      "reiniciar_conexao": {
+        "erros": 1,
+        "chamadas": 9,
+        "taxa_%": 11.1
+      },
+      "testar_linha": {
+        "erros": 1,
+        "chamadas": 28,
+        "taxa_%": 3.6
+      }
+    },
+    "respostas_corrigidas_pelo_verificador": 2,
+    "slo": {
+      "sli": "execuções que terminam bem / execuções válidas",
+      "boas": 36,
+      "validas": 41,
+      "valor_%": 87.8,
+      "objetivo_%": 95.0,
+      "janela": "7 dias",
+      "cumprido": false,
+      "orcamento_de_erro_consumido_%": 244.0
+    }
+  }
+}

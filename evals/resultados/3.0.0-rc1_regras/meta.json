@@ -1,0 +1,16 @@
+{
+  "rodada": "3.0.0-rc1_regras",
+  "versao": "3.0.0-rc1",
+  "modelo": "regras",
+  "modelo_id": "regras-v1",
+  "controles": {
+    "identidade_pelo_canal": true,
+    "memoria_sanitizada": true,
+    "verificador_de_afirmacoes": true
+  },
+  "commit": "sem-git",
+  "data": "2026-11-12T21:34:30",
+  "hoje_do_sistema": "2026-11-12",
+  "versao_dataset": "1.0.0",
+  "comando": "python -m evals.rodar --versao 3.0.0-rc1 --modelo regras --nome 3.0.0-rc1_regras"
+}

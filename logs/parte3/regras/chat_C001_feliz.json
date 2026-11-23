@@ -1,0 +1,267 @@
+{
+  "timestamp": "2026-11-12T21:40:09",
+  "versao_sistema": "3.0.0",
+  "commit": "sem-git",
+  "modelo": "regras-v1",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v3.md",
+      "sha256": "4bc31ccbd428"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C001:4b5fa742",
+  "contrato": "C001",
+  "identidade": {
+    "contrato": "C001",
+    "origem": "canal"
+  },
+  "mensagem_inicial": "oi",
+  "turnos": [
+    {
+      "cliente": "oi",
+      "motivo": "entrada_incompleta",
+      "trace_id": "5b16585dd8d582349184b3d70fb1a118",
+      "tokens_entrada": 0,
+      "tokens_saida": 0,
+      "saida": {
+        "resultado": "Olá! Sou o assistente de suporte técnico. Ainda não entendi qual é o problema. Me conte: o que a luz do modem mostra (verde, vermelha, piscando ou apagada) e se a falha acontece em todos os aparelhos ou só em um.",
+        "fontes": [],
+        "suficiente": false,
+        "motivo_insuficiencia": "entrada_incompleta",
+        "encaminhar_humano": false,
+        "motivo_parada": "entrada_incompleta",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    },
+    {
+      "cliente": "A luz do modem está piscando vermelha e a internet caiu.",
+      "motivo": "resposta_final",
+      "trace_id": "1d0f15e73a4f5838f4b1562d35e88aa8",
+      "tokens_entrada": 4256,
+      "tokens_saida": 110,
+      "saida": {
+        "resultado": "Reiniciei a sua conexão e o novo teste mostra a linha ONLINE, com sinal de -22.0 dBm. Pode verificar se voltou a navegar?",
+        "fontes": [
+          {
+            "tipo": "ferramenta",
+            "id": "conferir_queda_bairro",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "reiniciar_conexao",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "testar_linha",
+            "detalhe": null
+          }
+        ],
+        "suficiente": true,
+        "motivo_insuficiencia": null,
+        "encaminhar_humano": false,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    },
+    {
+      "cliente": "obrigado!",
+      "motivo": "resposta_final",
+      "trace_id": "7288587ba58b810d986cc5d1f34c9b8c",
+      "tokens_entrada": 917,
+      "tokens_saida": 15,
+      "saida": {
+        "resultado": "Por nada! Se a internet voltar a dar problema, é só me chamar.",
+        "fontes": [
+          {
+            "tipo": "ferramenta",
+            "id": "conferir_queda_bairro",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "reiniciar_conexao",
+            "detalhe": null
+          },
+          {
+            "tipo": "ferramenta",
+            "id": "testar_linha",
+            "detalhe": null
+          }
+        ],
+        "suficiente": true,
+        "motivo_insuficiencia": null,
+        "encaminhar_humano": false,
+        "motivo_parada": "resposta_final",
+        "citacoes_invalidas": [],
+        "afirmacoes_bloqueadas": []
+      }
+    }
+  ],
+  "trajetoria": [
+    {
+      "tipo": "turno",
+      "n": 1
+    },
+    {
+      "tipo": "memoria",
+      "carregada": false
+    },
+    {
+      "tipo": "triagem",
+      "rota": "incompleta",
+      "regra": "sem_palavra_de_sintoma"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "e5b1a4da4601b649",
+          "ja_existia": false
+        }
+      }
+    },
+    {
+      "tipo": "turno",
+      "n": 2
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "contrato": "C001",
+        "status": "OFFLINE",
+        "sinal_dbm": -22.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "conferir_queda_bairro",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "bairro": "Vila Nova",
+        "em_manutencao": false
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "reiniciar_conexao",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "contrato": "C001",
+        "status": "ONLINE"
+      }
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "contrato": "C001",
+        "status": "ONLINE",
+        "sinal_dbm": -22.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Reiniciei a sua conexão e o novo teste mostra a linha ONLINE, com sinal de -22.0 dBm. Pode verificar se voltou a navegar?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "d312bd5190add8f5",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "ccb0e9accf8bd3cd",
+          "ja_existia": false
+        }
+      }
+    },
+    {
+      "tipo": "turno",
+      "n": 3
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "Por nada! Se a internet voltar a dar problema, é só me chamar."
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "d312bd5190add8f5",
+          "ja_existia": true
+        },
+        "fato": {
+          "chave_idem": "ccb0e9accf8bd3cd",
+          "ja_existia": true
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 1,
+  "tokens": 5298,
+  "tokens_entrada": 5173,
+  "tokens_saida": 125,
+  "segundos_ativos": 0.0,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "Por nada! Se a internet voltar a dar problema, é só me chamar.",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "conferir_queda_bairro",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "reiniciar_conexao",
+        "detalhe": null
+      },
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": [],
+    "afirmacoes_bloqueadas": []
+  }
+}

@@ -19,6 +19,20 @@ para o suporte. Ele passa por um menu de botões ou por um atendente humano
 que faz perguntas repetitivas ("o modem tá ligado?", "tirou da tomada?") por
 14 a 20 minutos antes de resolver o problema ou encaminhar um técnico.
 
+**O que vem antes e depois do sistema** (devolutiva da Parte 1, item 1b):
+- **Antes (de onde vem a entrada):** a internet do cliente cai; ele abre o
+  WhatsApp do provedor e escreve. O número de telefone já autenticado pelo
+  WhatsApp chega junto com o texto e identifica o contrato (na Parte 3 isso
+  virou o controle C1, `docs/seguranca.md`). Não há formulário antes: a
+  entrada é a mensagem livre.
+- **Depois (para onde vai a saída e quem consome):** (a) o próprio cliente
+  lê a resposta no chat; (b) quando há visita aprovada, o registro vai para a
+  tabela `visitas`, que a **agenda dos técnicos de campo** consome; (c)
+  quando o caso é transferido, o **atendente humano** recebe a conversa com
+  a trajetória (o que foi testado e o resultado), para não repetir as
+  perguntas; (d) o **gerente da operação** consome os traces e as métricas
+  (`docs/observabilidade.md`).
+
 **Linha de base medida:** 14 min 20 s por chamado de suporte no canal
 digital, medidos em 10 atendimentos reais no provedor parceiro (ver §2.5).
 
@@ -52,7 +66,8 @@ digital, medidos em 10 atendimentos reais no provedor parceiro (ver §2.5).
 |---|---|---|---|
 | **Cliente residencial** (usuário principal) | ter a internet de volta sem perder tempo no telefone | só o que vê em casa ("a luz ficou vermelha", "a internet caiu") | descrever o problema, mexer em cabo/tomada, **aprovar** a visita do técnico |
 | Técnico de suporte avançado | receber só os casos difíceis, já com os testes prontos | rede, sinais e cabos de fibra | trocar modem, dar desconto, mandar equipe de rua (fora do escopo desta entrega) |
-| Gerente da operação | acompanhar quedas na cidade e não deixar clientes sem resposta | rede da cidade e metas de atendimento | marcar bairro em manutenção no sistema, pausando envio de técnico individual |
+| **Atendente humano** (central de atendimento, nível 1) — é quem o agente chama no transbordo | resolver o que o agente não resolveu sem repetir as perguntas | o processo de atendimento, cobrança e cadastro; não mexe na rede | ler a conversa e a trajetória transferidas, tratar cobrança/cancelamento, corrigir cadastro, reabrir a visita técnica, acionar o técnico de suporte avançado |
+| Gerente da operação | acompanhar quedas na cidade e não deixar clientes sem resposta | rede da cidade e metas de atendimento | marcar bairro em manutenção no sistema, pausando envio de técnico individual; **suspender o agente** (kill switch, `docs/model-card.md` §3; responsável designado: Bruno José Oliveira Gomes) |
 
 O **usuário principal** é o cliente residencial: quando os interesses
 entram em conflito (§2.5), o sistema é desenhado a favor dele — priorizando
@@ -73,7 +88,16 @@ diagnóstico correto sobre custo de deslocamento.
 
 **Diálogo de exemplo:**
 
-Cliente: Boa noite, minha internet caiu e a luz do aparelho ficou vermelha. Agente: Olá! Vou testar a sua linha aqui no sistema agora mesmo, só um segundo... Agente: Vi aqui que o sinal de fibra que chega na sua casa está fraco. Não tem problema no seu bairro. Consegue ver se o cabinho amarelo atrás do modem está bem encaixado? Cliente: O cachorro encostou e o cabo tava solto! Encaixei de novo. Agente: Ótimo, vou reiniciar sua conexão daqui do sistema. Agente: Pronto! O sinal voltou ao normal e o aparelho já conectou. Pode testar a internet agora? Cliente: Voltou sim! Muito obrigado.
+> **Cliente:** Boa noite, minha internet caiu e a luz do aparelho ficou vermelha.
+> **Agente:** Olá! Vou testar a sua linha aqui no sistema agora mesmo, só um segundo...
+> **Agente:** Vi aqui que o sinal de fibra que chega na sua casa está fraco. Não tem problema no seu bairro. Consegue ver se o cabinho amarelo atrás do modem está bem encaixado?
+> **Cliente:** O cachorro encostou e o cabo tava solto! Encaixei de novo.
+> **Agente:** Ótimo, vou reiniciar sua conexão daqui do sistema.
+> **Agente:** Pronto! O sinal voltou ao normal e o aparelho já conectou. Pode testar a internet agora?
+> **Cliente:** Voltou sim! Muito obrigado.
+
+Na Parte 3 esta conversa existe de verdade: `python -m src.chat` (README). Uma
+transcrição gerada por execução está em `logs/parte3/`.
 
 **A complexidade da interação:**
 - **O que o cliente não informa de primeira:** a causa real do defeito — só
@@ -85,9 +109,12 @@ Cliente: Boa noite, minha internet caiu e a luz do aparelho ficou vermelha. Agen
 - **Quando o agente decide que já sabe o suficiente:** depois de rodar
   `testar_linha` e, se necessário, `conferir_queda_bairro`, com no máximo 3
   testes de linha por atendimento (limite de orçamento, não de política).
-- **Quando chama um humano:** se o assunto for cobrança/fatura/cancelamento
-  (nunca é tratado pelo agente técnico); se passarem 6 mensagens sem
-  resolução; ou se o cliente pedir para falar com uma pessoa.
+- **Quando chama um humano (o atendente humano da tabela de perfis):** se o
+  assunto for cobrança/fatura/cancelamento (nunca é tratado pelo agente
+  técnico); se o cliente pedir para falar com uma pessoa; se um turno esgotar
+  o orçamento (6 chamadas ao modelo, 8 de ferramenta, 12.000 tokens, 120 s) ou
+  a conversa passar de 12 mensagens; se o cliente não responder à aprovação
+  da visita em 15 minutos.
 
 ## 3. O workflow do agente
 
@@ -98,10 +125,10 @@ Atualizado na Parte 2 para o que o sistema faz hoje (o desenho está em `docs/ar
 | 1. ENTRADA | o cliente escreve no WhatsApp; o contrato vem da sessão | CÓDIGO |
 | 2. SEPARAÇÃO | cobrança, cancelamento ou pedido de atendente vão para humano; mensagem sem sintoma recebe um pedido de detalhes | CÓDIGO (regras de palavra, sem chamar o modelo) |
 | 3. DIAGNÓSTICO | `testar_linha`, `conferir_queda_bairro`, `consultar_base_conhecimento` | MODELO escolhe qual; CÓDIGO aplica o limite de 3 testes e detecta laço |
-| 4. AÇÃO | `reiniciar_conexao`, se não houver falha física | MODELO escolhe; CÓDIGO recusa se o sinal é igual ou pior que -27 dBm |
-| 5. VERIFICAÇÃO | roda `testar_linha` de novo antes de dizer "resolvido" | MODELO, por instrução do prompt; não há trava em código (medido em `docs/experimento_frase.md`) |
-| 6. AGENDAMENTO | `propor_visita` valida; o grafo pausa; o cliente aprova, rejeita ou edita a data; só então o código agenda | CÓDIGO e CLIENTE; o modelo não tem a ferramenta que agenda |
-| 7. REGISTRO | grava a trajetória no log e a memória do atendimento | CÓDIGO |
+| 4. AÇÃO **[ESCRITA reversível — sem confirmação]** | `reiniciar_conexao`, se não houver falha física. É escrita (muda o status do modem e o contador `reinicios_hoje`), mas reversível e restrita à linha do próprio cliente, por isso não pede confirmação | MODELO escolhe; CÓDIGO recusa se o sinal é igual ou pior que -27 dBm e para no detector de laço |
+| 5. VERIFICAÇÃO | roda `testar_linha` de novo antes de dizer "resolvido" | MODELO, por instrução do prompt; desde a Parte 3, o CÓDIGO confere a afirmação "resolvido" contra a trajetória (controle C4) |
+| 6. AGENDAMENTO **[ESCRITA irreversível de custo — confirma o CLIENTE]** | `propor_visita` valida; o grafo pausa; o cliente aprova, rejeita ou edita a data, digitando no chat; só então o código agenda | CÓDIGO e CLIENTE; o modelo não tem a ferramenta que agenda e não interpreta a resposta do cliente |
+| 7. REGISTRO **[ESCRITA — memória e trace]** | grava a trajetória no log/trace e a memória do atendimento (sanitizada, controle C3) | CÓDIGO |
 | 8. RESPOSTA | responde ao cliente em linguagem simples; o código valida fontes e contrato de saída | MODELO escreve; CÓDIGO valida |
 
 Dos 8 passos, 4 têm decisão do modelo (3, 4, 5 e 8) e o resto é código fixo. A maior parte do sistema é regra determinística; a parte que justifica um agente está concentrada nos passos 3 a 5 (ver §4).
@@ -126,7 +153,6 @@ agendar dependem do **resultado intermediário**, não só da mensagem inicial.
 
 | Ferramenta | O que faz | Leitura/escrita | Reversível? | Contra o que conversa |
 |---|---|---|---|---|
-| `obter_data_atual` | retorna a data de hoje e a de amanhã | leitura | — | relógio do sistema, não o provedor |
 | `testar_linha` | lê status e sinal do modem | leitura | — | SQLite `provedor.db` |
 | `conferir_queda_bairro` | verifica manutenção no bairro | leitura | — | SQLite `provedor.db` |
 | `reiniciar_conexao` | reinicia a conexão à distância | escrita | sim | SQLite `provedor.db` |
@@ -134,12 +160,13 @@ agendar dependem do **resultado intermediário**, não só da mensagem inicial.
 | `consultar_base_conhecimento` | busca trechos nos manuais e políticas; recusa quando nada cobre a pergunta | leitura | — | corpus em `dados/corpus` |
 | `agendar_visita_tecnico` | agenda visita; o modelo não a chama, quem chama é o código depois da aprovação do cliente | escrita | não (desloca técnico) | SQLite `provedor.db` |
 
-`obter_data_atual` existe só porque o modelo não tem relógio e precisa saber
-que dia é hoje para propor a data de uma visita técnica (regra do domínio
-§2.1). Ela não lê nem escreve no sistema do provedor, então não conta como
-parte da complexidade de diagnóstico: é um utilitário. A Parte 2 acrescentou
-`propor_visita` e `consultar_base_conhecimento` às quatro ferramentas do case
-original.
+**Cinco ferramentas visíveis ao modelo** (as cinco primeiras da tabela). A
+devolutiva da Parte 1 apontou que `obter_data_atual` estourava o limite de
+quatro: na Parte 3 ela saiu, e a data de hoje e a de amanhã passaram a ir no
+prompt de sistema, montadas pelo código (`src/grafo.py`, `_mensagens_para_o_modelo`).
+Isso também tirou uma volta do laço em todo caso de visita. A Parte 2
+acrescentou `propor_visita` e `consultar_base_conhecimento` às ferramentas do
+case original; `agendar_visita_tecnico` não é visível ao modelo.
 
 A defesa do nível de autonomia, feita com o sistema rodando, está em
 `docs/arquitetura.md` §5.
@@ -185,16 +212,18 @@ partir de uma linha de base medida, não um resultado já observado.
 
 ## 6. O verificador
 
-Conjunto de **casos rotulados à mão**: para cada caso de teste (os 4 de
-§2.8 mais outros que o grupo adicionar), definimos manualmente qual é a
-ação correta esperada do agente (reiniciar / agendar visita / escalar para
-humano / não agir). O verificador compara a ação realmente tomada pelo
-agente (lida do log de trajetória) com a ação esperada da tabela.
+Conjunto de **casos rotulados à mão**, agora construído: o golden dataset
+`evals/dataset.jsonl` (28 casos, 5 classes), cada um com o esperado
+declarado (ações obrigatórias e proibidas, visitas no banco depois da
+execução, motivo de término, suficiência). O verificador compara a ação
+realmente tomada (lida da trajetória e do banco) com o esperado:
+`python -m evals.rodar`. Detalhes em `docs/evals.md`.
 
 ## 7. O critério de sucesso
 
 O agente acerta a ação correta (reiniciar, agendar, escalar ou não agir) em
-pelo menos **8 de 10** casos rotulados à mão, **e** não agenda nenhuma
+pelo menos **8 de 10** casos rotulados à mão (na Parte 3, medido sobre os 28
+casos do golden dataset: ≥ 23 de 28), **e** não agenda nenhuma
 visita individual em caso de bairro em manutenção (erro assimétrico: um
 agendamento indevido custa deslocamento real, então essa condição não abre
 exceção mesmo que a taxa geral esteja ok).
@@ -204,8 +233,18 @@ exceção mesmo que a taxa geral esteja ok).
 Simulados: um banco SQLite (`dados/provedor.db`), gerado por um script de
 seed (`src/db.py`), com clientes, modems e bairros fictícios. Casos difíceis
 nomeados:
-- **Divergência:** cliente C002 — o teste mostra `ONLINE`, mas a mensagem do
-  cliente diz que a internet caiu.
+- **Divergência:** cliente **C003** — o teste mostra `ONLINE`, o bairro NÃO
+  está em manutenção, e a mensagem do cliente diz que a internet caiu. Caso
+  dedicado criado na Parte 3 porque a devolutiva da Parte 1 mostrou que o
+  C002 não isolava a divergência (o bairro dele está em manutenção, então a
+  contradição era explicada pela manutenção). O C002 continua no seed como
+  "ONLINE + manutenção".
+- **Bordas do limiar:** C006 (sinal exatamente −27,0 dBm: é falha física) e
+  C007 (−26,9 dBm: não é). C008 tem bairro sem cadastro
+  (`bairro_nao_encontrado`).
+- **Identidade pelo canal:** cada contrato tem um telefone fictício
+  (`+5511900000001` a `…008`, tabela `canais`). O chat abre a conversa pelo
+  telefone, não pelo contrato.
 - **Registro inexistente:** contrato `C999`, que não existe na base.
 - **Não deve disparar a ação principal:** cliente C005, cujo bairro
   (Jardim Ipê) está marcado como em manutenção — o agente não deve agendar
@@ -222,12 +261,13 @@ fictício.
 
 - [x] **RAG** (Parte 2): o manual de causas comuns de sinal fraco/perda de
   fibra do provedor, hoje só existe como PDF interno não estruturado.
-- [ ] **MCP** (Parte 2): a camada de acesso ao "sistema do provedor"
+- [ ] **MCP** (opcional na Parte 3, não usado — ver `docs/mudancas.md`): a camada de acesso ao "sistema do provedor"
   (`testar_linha`, `conferir_queda_bairro`, `reiniciar_conexao`,
   `agendar_visita_tecnico`) vira servidor MCP.
-- [ ] **LangChain** (Parte 2): ainda não decidido em que parte da
-  orquestração ela entraria.
-- [x] **Multiagente** (Parte 3): o agente de apoio ao técnico de campo,
+- [x] **LangGraph** (Parte 2): a orquestração inteira é um `StateGraph`
+  (`src/grafo.py`).
+- [ ] **Multiagente** (opcional na Parte 3, **não implementado**; fica como
+  evolução): o agente de apoio ao técnico de campo,
   detalhado no PDF da parte 2 da entrega original (recebe fotos do conector
   óptico, mede sinal na caixa da rua, provisiona modem novo). Por que mais
   de um agente: os dois perfis têm ferramentas e nível de conhecimento

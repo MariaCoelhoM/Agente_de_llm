@@ -1,0 +1,16 @@
+{
+  "rodada": "3.0.0_regras_20261112-223050",
+  "versao": "3.0.0",
+  "modelo": "regras",
+  "modelo_id": "regras-v1",
+  "controles": {
+    "identidade_pelo_canal": true,
+    "memoria_sanitizada": true,
+    "verificador_de_afirmacoes": true
+  },
+  "commit": "4b39561",
+  "data": "2026-11-12T22:30:50",
+  "hoje_do_sistema": "2026-11-12",
+  "versao_dataset": "1.0.0",
+  "comando": "python -m evals.rodar --versao 3.0.0 --modelo regras"
+}

@@ -112,19 +112,42 @@ O passo 3 mostra que o contrato estava em dois bancos (`memoria.db` e `checkpoin
 
 ## 5. A conversa
 
-**O que identifica uma conversa.** O `thread_id` é `contrato:uuid8` (`src/agent.py`). Mesmo `thread_id`, mesma conversa; chave nova, histórico vazio. Como o uuid é gerado a cada execução, cada atendimento começa com histórico de conversa vazio.
+> Reescrita na Parte 3, quando o sistema virou um chat de vários turnos (`src/chat.py`).
 
-**Duas conversas ao mesmo tempo do mesmo contrato.** Ganham dois `thread_id` diferentes, com checkpoints, logs e trajetórias independentes: nenhuma enxerga a outra. Elas compartilham a memória de longo prazo, que é por contrato. As escritas se reconciliam pelas regras da §3 e da §4: a chave derivada do conteúdo evita duplicata, o carimbo de tempo resolve contradição, e a visita para a mesma data é idempotente (`docs/humano.md` §5).
+**O que identifica uma conversa.** O `thread_id` é `contrato:uuid8`, gerado quando a conversa abre (`Conversa.__init__`). O contrato vem do **telefone do canal** (tabela `canais`), não do texto. Cada mensagem do cliente é um turno sobre o mesmo `thread_id`: mesma chave, mesmo checkpoint, mesmo histórico. `/nova` no chat abre outra conversa (chave nova, histórico vazio).
 
-**Onde o checkpoint é gravado.** Em arquivo: `SqliteSaver` sobre `dados/checkpoints.db`. Os testes usam `InMemorySaver`, e nesse caso a conversa morre com o processo, o que vale só para os testes.
+**Duas conversas ao mesmo tempo do mesmo contrato.** Ganham dois `thread_id` diferentes, com checkpoints, logs e traces independentes: nenhuma enxerga a outra. Elas compartilham a memória de longo prazo, que é por contrato. As escritas se reconciliam pelas regras da §3 e da §4: a chave derivada do conteúdo evita duplicata, o carimbo de tempo resolve contradição, e a visita para a mesma data é idempotente (`docs/humano.md` §6).
 
-**O que acontece quando a janela enche.** Não há truncamento nem sumarização. O orçamento (6 voltas, 8 chamadas de ferramenta, 12000 tokens, 120 s) encerra a execução e encaminha para um atendente antes de a janela encher, e o case prevê atendimentos de 3 a 5 mensagens. O que se perde é a execução inteira: o cliente vai para um humano, com o que já foi verificado. Sumarizar o trecho antigo exigiria uma chamada de modelo a mais e arriscaria perder um resultado de ferramenta de que o código depende.
+**Onde o checkpoint é gravado.** Em arquivo: `SqliteSaver` sobre `dados/checkpoints.db`. Uma aprovação pendente sobrevive à queda do processo (o estado está no arquivo), mas o chat de terminal não reabre uma conversa antiga: a retomada depois de reiniciar o processo exige conhecer o `thread_id` (limitação declarada). Os testes usam `InMemorySaver`.
 
-**O que passa da conversa para a memória de longo prazo.** Um episódio (o relato inicial do cliente, a causa, a ação e o resultado, extraídos por regra) e o último sinal medido. O resto da conversa, incluindo as respostas do modelo, não sobrevive.
+**O que acontece quando a janela enche.** A política escolhida é **truncar o início, por turno inteiro** (`_janela` em `src/grafo.py`): vão ao modelo só os últimos 4 turnos do cliente (`config.JANELA_TURNOS`), com as respostas e os retornos de ferramenta deles. O corte é sempre numa mensagem do cliente, para não deixar um retorno de ferramenta sem a chamada que o originou. Ordem do que sai e do que fica:
+
+| | |
+|---|---|
+| nunca sai | prompt do sistema, memória procedural, contrato e data, a mensagem atual e as do turno corrente |
+| sai primeiro | os turnos mais antigos da conversa (a partir do 5º turno para trás) |
+| limitado na entrada | bloco de memória de longo prazo, 500 tokens (episódio mais antigo sai primeiro) |
+
+**O que se perde:** o texto dos turnos antigos. O que **não** se perde: a trajetória (que fica no estado e não vai ao modelo) continua valendo para as fontes, o limite de 3 testes por conversa e o verificador de afirmações (C4); por isso o código continua sabendo que a linha foi testada no 1º turno mesmo que o modelo não veja mais esse turno. Não sumarizamos: custaria uma chamada a mais por turno e arriscaria perder um número de ferramenta de que o código depende. Além da janela, dois tetos da conversa: 12 mensagens do cliente e 60.000 tokens; passou, transbordo (`conversa_longa`).
+
+**O que passa da conversa para a memória de longo prazo.** Um episódio (o **primeiro** relato do cliente na conversa, `mensagem_inicial`, sanitizado — §8 —, a causa, a ação e o resultado, extraídos por regra) e o último sinal medido. O episódio é regravado a cada turno; como a chave deriva do conteúdo, um turno que não muda causa/ação/resultado não cria linha nova (`ja_existia=True`), e um que muda (ex.: a visita foi aprovada no 2º turno) cria. O resto da conversa, incluindo as respostas do modelo, não sobrevive.
 
 ## 6. Orçamento do bloco de memória
 
-O bloco entra no prompt com teto de 500 tokens (`config.ORCAMENTO_TOKENS`). Se estourar, o episódio mais antigo sai primeiro. O bloco é marcado como "não confirmado pelo cliente agora", e o prompt manda confirmar com as ferramentas.
+O bloco entra com teto de 500 tokens (`config.ORCAMENTO_TOKENS`). Se estourar, o episódio mais antigo sai primeiro. **Desde a Parte 3 o bloco não está mais no prompt de sistema**: entra como uma mensagem separada, delimitada por `<memoria_do_sistema>…</memoria_do_sistema>`, e o prompt v3 diz que aquilo é dado, não instrução. Isso é prompt e não conta como controle; o controle está na escrita (§8).
+
+## 8. O que a memória NÃO guarda (Parte 3)
+
+Ponto do código que impede a gravação: `memoria.sanitizar_relato`, chamado por `gravar_atendimento` antes de `registrar_episodio` (`src/memoria.py`). Testes: `tests/test_controles.py` (`test_c3_*`).
+
+| Não guarda | Como | Por quê |
+|---|---|---|
+| relato com forma de instrução ("ignore as regras", "nos próximos atendimentos", "diga que", texto entre colchetes ou tags) | o relato inteiro é trocado por `[relato não guardado: continha instrução, não sintoma]` | conteúdo vindo de fora sem verificação, guardado e devolvido ao modelo, é injeção indireta com persistência (ASI06) |
+| CPF, número de cartão, e-mail, telefone, "senha: …" | mascarados (`[cpf removido]`…) antes de gravar | dado pessoal que não serve para diagnosticar a linha |
+| o que o cliente apenas afirmou ("o sinal é -10") | não vira fato: o fato semântico só vem do retorno de `testar_linha` | já era assim na Parte 2 (§3) |
+| atendimento de contrato inexistente | nada é gravado | já era assim na Parte 2 |
+
+O que continua sendo guardado de dado pessoal: o número do contrato (é a chave de tudo) e o relato sanitizado. O trace guarda a entrada também sanitizada (`app.entrada`, `src/chat.py`).
 
 ## 7. Limites
 

@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-10-19T01:42:36",
+  "commit": "8b9fd3d",
+  "modelo": "qwen/qwen3.8-27b",
+  "temperature": 0.2,
+  "prompts": {
+    "sistema": {
+      "arquivo": "suporte_v2.md",
+      "sha256": "8ff597289d95"
+    },
+    "procedural": {
+      "arquivo": "procedural.md",
+      "sha256": "5ecc9d266e5f"
+    }
+  },
+  "thread_id": "C001:0051a4dd",
+  "contrato": "C001",
+  "mensagem_inicial": "A internet está ruim hoje, não sei se é o wifi ou a internet mesmo.",
+  "trajetoria": [
+    {
+      "tipo": "memoria",
+      "carregada": true
+    },
+    {
+      "tipo": "triagem",
+      "rota": "suporte"
+    },
+    {
+      "tipo": "ferramenta",
+      "nome": "testar_linha",
+      "args": {
+        "contrato": "C001"
+      },
+      "resultado": {
+        "contrato": "C001",
+        "status": "ONLINE",
+        "sinal_dbm": -22.0,
+        "falha_fisica_provavel": false
+      }
+    },
+    {
+      "tipo": "resposta_final",
+      "conteudo": "A linha está online e o sinal está bom (-22 dBm). Então o problema provavelmente é no wifi, não na internet.\n\nPra confirmar, me ajuda com um teste:\n- Conecta um aparelho direto no roteador por cabo de rede (ethernet) e tenta navegar.\n\nSe funcionar pelo cabo, o problema é no wifi. Se não funcionar nem pelo cabo, me avisa que eu confiro se há queda no bairro.\n\nTambém vale tentar reiniciar o roteador (desligar por 10 segundos e ligar de novo).\n\nQuer que eu já reinicie a conexão à distância?"
+    },
+    {
+      "tipo": "memoria_gravada",
+      "gravou": true,
+      "resultado": {
+        "episodio": {
+          "chave_idem": "c98458ee4df4d07a",
+          "ja_existia": false
+        },
+        "fato": {
+          "chave_idem": "cc7aba6268c0802c",
+          "ja_existia": true
+        }
+      }
+    }
+  ],
+  "pausas_de_aprovacao": [],
+  "voltas": 2,
+  "tokens": 3183,
+  "segundos_ativos": 25.57,
+  "motivo_parada": "resposta_final",
+  "saida": {
+    "resultado": "A linha está online e o sinal está bom (-22 dBm). Então o problema provavelmente é no wifi, não na internet.\n\nPra confirmar, me ajuda com um teste:\n- Conecta um aparelho direto no roteador por cabo de rede (ethernet) e tenta navegar.\n\nSe funcionar pelo cabo, o problema é no wifi. Se não funcionar nem pelo cabo, me avisa que eu confiro se há queda no bairro.\n\nTambém vale tentar reiniciar o roteador (desligar por 10 segundos e ligar de novo).\n\nQuer que eu já reinicie a conexão à distância?",
+    "fontes": [
+      {
+        "tipo": "ferramenta",
+        "id": "testar_linha",
+        "detalhe": null
+      }
+    ],
+    "suficiente": true,
+    "motivo_insuficiencia": null,
+    "encaminhar_humano": false,
+    "motivo_parada": "resposta_final",
+    "citacoes_invalidas": []
+  }
+}

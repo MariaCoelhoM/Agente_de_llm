@@ -28,7 +28,6 @@ def visitas():
 def roteiro_visita(final):
     return [
         chamada("testar_linha"),
-        chamada("obter_data_atual"),
         chamada("propor_visita", {"data": AMANHA}),
         texto(final),
     ]
@@ -71,12 +70,12 @@ def test_edicao_invalida_vira_rejeicao(checkpointer, data):
 
 
 def test_expirar_nao_agenda_e_encaminha_humano(checkpointer):
-    # o roteiro tem só 3 respostas: depois do prazo o modelo nem é chamado de novo
-    r, simulado = rodar("C004", "sem internet", roteiro_visita("x")[:3], checkpointer, "expirou")
+    # o roteiro tem só 2 respostas: depois do prazo o modelo nem é chamado de novo
+    r, simulado = rodar("C004", "sem internet", roteiro_visita("x")[:2], checkpointer, "expirou")
     assert visitas() == []
     assert r["motivo_parada"] == "aprovacao_expirada"
     assert r["saida"]["encaminhar_humano"] is True
-    assert simulado.chamadas == 3
+    assert simulado.chamadas == 2
 
 
 def test_aprovacao_repetida_nao_duplica(checkpointer):
@@ -185,14 +184,14 @@ def test_laco_e_detectado(checkpointer):
 
 def test_limite_de_voltas(checkpointer, monkeypatch):
     monkeypatch.setattr(config, "MAX_VOLTAS_AGENTE", 2)
-    r, _ = rodar("C001", "sem internet", [chamada("obter_data_atual"), chamada("conferir_queda_bairro"),
-                                chamada("testar_linha")], checkpointer)
+    r, _ = rodar("C001", "sem internet", [chamada("conferir_queda_bairro"), chamada("testar_linha"),
+                                chamada("reiniciar_conexao")], checkpointer)
     assert r["motivo_parada"] == "limite_de_voltas"
 
 
 def test_limite_de_tokens(checkpointer, monkeypatch):
     monkeypatch.setattr(config, "TETO_TOKENS", 100)
-    r, _ = rodar("C001", "sem internet", [chamada("obter_data_atual", tokens=500), texto("x")], checkpointer)
+    r, _ = rodar("C001", "sem internet", [chamada("conferir_queda_bairro", tokens=500), texto("x")], checkpointer)
     assert r["motivo_parada"] == "tokens_esgotados"
 
 
@@ -204,8 +203,8 @@ def test_erro_fatal_do_modelo_encaminha_humano(checkpointer):
 
 def test_recursion_limit_vira_motivo_de_termino(checkpointer, monkeypatch):
     monkeypatch.setattr(config, "RECURSION_LIMIT", 6)
-    r, _ = rodar("C001", "sem internet", [chamada("obter_data_atual"), chamada("conferir_queda_bairro"),
-                                chamada("testar_linha"), texto("x")], checkpointer)
+    r, _ = rodar("C001", "sem internet", [chamada("conferir_queda_bairro"), chamada("testar_linha"),
+                                chamada("reiniciar_conexao"), texto("x")], checkpointer)
     assert r["motivo_parada"] == "recursion_limit"
 
 
@@ -218,9 +217,11 @@ def test_log_e_gravado_com_campos_do_enunciado(checkpointer, tmp_path):
         assert campo in log
 
 
-def test_limite_de_testes_de_linha(checkpointer):
-    """A quarta chamada a testar_linha no mesmo atendimento é recusada.
-    As escritas (reiniciar) entre os testes evitam o detector de laço."""
+def test_limite_de_testes_de_linha(checkpointer, monkeypatch):
+    """A quarta chamada a testar_linha no mesmo atendimento é recusada. O
+    detector de laço é afrouxado aqui para isolar o limite de testes (desde a
+    Parte 3 ele pega o reinício repetido, ver test_reinicio_repetido_e_laco)."""
+    monkeypatch.setattr(config, "REPETICOES_PARA_LACO", 10)
     seq = []
     for i in range(3):
         seq += [{"id": f"t{i}", "nome": "testar_linha", "args": {}},
@@ -231,3 +232,9 @@ def test_limite_de_testes_de_linha(checkpointer):
     assert len(testes) == 4
     assert testes[3]["resultado"]["erro"] == "limite_de_testes_atingido"
     assert all("erro" not in t["resultado"] for t in testes[:3])
+
+def test_reinicio_repetido_e_laco(checkpointer):
+    """Correção da Parte 3: a mesma escrita repetida não zera a própria contagem."""
+    r, _ = rodar("C001", "sem internet", [chamada("reiniciar_conexao", id=f"r{i}") for i in range(3)]
+                 + [texto("x")], checkpointer)
+    assert r["motivo_parada"] == "laco_detectado"

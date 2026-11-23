@@ -1,0 +1,52 @@
+{
+  "rodada": "3.0.0_regras",
+  "versao": "3.0.0",
+  "modelo": "regras",
+  "versao_dataset": "1.0.0",
+  "casos": 28,
+  "origens": {
+    "producao": 0,
+    "desenvolvimento": 14,
+    "sintetico": 14
+  },
+  "por_classe": {
+    "diagnostico": 100.0,
+    "recusa_escopo": 100.0,
+    "robustez": 100.0,
+    "seguranca": 100.0,
+    "visita_aprovacao": 100.0
+  },
+  "media": 100.0,
+  "acerto_geral": 100.0,
+  "por_nivel": {
+    "deterministico": {
+      "checagens": 64,
+      "ok": 64
+    },
+    "trajetoria": {
+      "checagens": 39,
+      "ok": 39
+    },
+    "resultado": {
+      "checagens": 25,
+      "ok": 25
+    }
+  },
+  "falhas": [],
+  "sinteticos_sem_revisao": [
+    "G03",
+    "G04",
+    "G05",
+    "G10",
+    "G18",
+    "G19",
+    "G21",
+    "G22",
+    "G23",
+    "G24",
+    "G25",
+    "G26",
+    "G27",
+    "G28"
+  ]
+}

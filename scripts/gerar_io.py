@@ -13,12 +13,12 @@ from src import config
 linhas = [
     "# Entrada e saída do sistema",
     "",
-    "Exemplos reais, gerados por scripts/gerar_io.py a partir dos logs em logs/.",
+    "Exemplos reais, gerados por scripts/gerar_io.py a partir dos logs em logs/parte2/.",
     "A entrada é texto livre; o contrato vem da sessão e o thread_id é gerado pelo sistema.",
     "A saída é validada (src/schemas.py): resultado, fontes, suficiente.",
     "",
 ]
-for caminho in sorted(glob.glob(os.path.join(config.PASTA_LOGS, "*.json"))):
+for caminho in sorted(glob.glob(os.path.join(config.RAIZ, "logs", "parte2", "*.json"))):
     with open(caminho, encoding="utf-8") as f:
         log = json.load(f)
     if "commit" not in log:
@@ -42,4 +42,4 @@ for caminho in sorted(glob.glob(os.path.join(config.PASTA_LOGS, "*.json"))):
 destino = os.path.join(config.RAIZ, "docs", "io.md")
 with open(destino, "w", encoding="utf-8") as f:
     f.write("\n".join(linhas))
-print(f"{destino} gerado com {len(glob.glob(os.path.join(config.PASTA_LOGS, '*.json')))} logs")
+print(f"{destino} gerado")

@@ -18,14 +18,31 @@ A pausa é estrutural: o modelo não tem a ferramenta que agenda. Ele tem `propo
 
 ## 2. O que a pessoa vê
 
-O `interrupt` entrega a ação exata, e não um resumo do modelo: a ação (`agendar_visita_tecnico`), o contrato, a data proposta, a consequência ("desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho"), as opções (aprovar, rejeitar, editar), a janela de edição (de hoje até 14 dias) e o prazo. No terminal:
+O `interrupt` entrega a ação exata, e não um resumo do modelo: a ação (`agendar_visita_tecnico`), o contrato, a data proposta, a consequência ("desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho"), as opções, a janela de edição (de hoje até 14 dias) e o prazo.
+
+**Na Parte 3 a pausa acontece dentro do chat.** O cartão é montado pelo código (`src/chat.py`, `cartao_aprovacao`) e aparece como mensagem do agente. Exemplo copiado de `logs/parte3/regras/chat_C004_visita_editada.json` (modelo de regras):
 
 ```
-=== APROVAÇÃO NECESSÁRIA ===
-Ação: agendar_visita_tecnico  contrato=C004  data=2026-10-20
-Consequência: desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho
-Prazo: 900s. Opções: aprovar | rejeitar | editar AAAA-MM-DD
+Agente: Para resolver, preciso da sua autorização para uma visita técnica.
+  Ação: agendar visita técnica · contrato C004 · data 2026-11-13
+  Consequência: desloca um técnico até a casa do cliente; tem custo e não é desfeito sozinho
+Responda "sim" para aprovar, "não" para recusar, ou diga outra data (de 2026-11-12 até 2026-11-26).
+Prazo para responder: 15 min.
 ```
+
+**O que a pessoa devolve**, em texto livre, lido por regra em código (`interpretar_aprovacao`), nunca pelo modelo:
+
+| O cliente digita | Vira |
+|---|---|
+| "sim", "pode", "ok", "aprovo", "pode sim"… | aprovar |
+| "não", "não quero", "cancela"… | rejeitar |
+| uma data: "2026-11-20", "20/11", "dia 20", "depois de amanhã" — inclusive "não, prefiro dia 20" | **aprovar editando** (editar), com a data validada pelo nó `aprovacao` |
+| algo que a regra não entende ("quanto custa?") | o cartão é repetido; na 3ª vez, vira rejeitar (`resposta_nao_entendida`) |
+| nada, por 15 minutos | expirou |
+
+Por que regra e não modelo: a resposta decide uma escrita irreversível de custo, e a pergunta é verificável (há um "sim", um "não" ou uma data?). O degrau mais barato resolve, e um "sim" escrito pelo próprio modelo não tem por onde chegar (`tests/test_chat.py::test_modelo_nao_aprova_a_propria_proposta`). Ponto em aberto: o chat não responde perguntas enquanto há uma aprovação pendente (o "quanto custa?" acima recebe o cartão de novo).
+
+A interface de uma mensagem só da Parte 2 continua existindo (`python -m src.agent`), com o cartão no terminal e as opções `aprovar | rejeitar | editar AAAA-MM-DD`.
 
 ## 3. As quatro saídas
 
@@ -42,7 +59,7 @@ Exemplo real, `caso_C004_pausa_edita` (log de 19/10/2026): o grafo propôs 2026-
 
 ## 4. A implementação, e por que ela depende do checkpoint
 
-A pausa é um `interrupt` dentro do nó `aprovacao` (`src/grafo.py:224`). A retomada é uma nova invocação com `Command(resume=...)` (`src/agent.py:109`), e o valor devolvido vira o retorno do `interrupt`. A retomada não continua da linha seguinte: o nó roda de novo desde o começo. Por isso o nó só lê o estado antes do `interrupt`, e nenhum efeito colateral acontece antes dele; o agendamento fica no nó seguinte.
+A pausa é um `interrupt` dentro do nó `aprovacao` (`src/grafo.py:347`). A retomada é uma nova invocação com `Command(resume=...)` (`src/chat.py:197`), e o valor devolvido vira o retorno do `interrupt`. A retomada não continua da linha seguinte: o nó roda de novo desde o começo. Por isso o nó só lê o estado antes do `interrupt`, e nenhum efeito colateral acontece antes dele; o agendamento fica no nó seguinte.
 
 Isso só funciona porque existe um checkpointer. A pausa é um checkpoint gravado, endereçado por `thread_id`, e o checkpointer é o `SqliteSaver` em `dados/checkpoints.db`. Os testes usam `InMemorySaver`, onde a aprovação pendente morreria com o processo.
 
