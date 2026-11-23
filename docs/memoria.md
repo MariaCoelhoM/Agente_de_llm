@@ -1,6 +1,6 @@
 # Memória
 
-Implementação em `src/memoria.py`. O desenho está em `exercicios/Memória — Agente de Suporte Técnico Doméstico.pdf` (Exercício 8).
+Implementação em src/memoria.py. O desenho do Exercício 8 está descrito neste documento (material do curso, fora do repositório).
 
 ## 1. Os dois níveis e a fronteira entre três estruturas
 
