@@ -1,0 +1,16 @@
+{
+  "rodada": "2.1.0_qwen",
+  "versao": "2.1.0",
+  "modelo": "real",
+  "modelo_id": "qwen/qwen3.8-27b",
+  "controles": {
+    "identidade_pelo_canal": false,
+    "memoria_sanitizada": false,
+    "verificador_de_afirmacoes": false
+  },
+  "commit": "5666e52",
+  "data": "2026-11-23T20:53:10",
+  "hoje_do_sistema": "2026-11-23",
+  "versao_dataset": "1.0.0",
+  "comando": "python -m evals.rodar --versao 2.1.0 --versao-anterior --modelo real --nome 2.1.0_qwen"
+}
