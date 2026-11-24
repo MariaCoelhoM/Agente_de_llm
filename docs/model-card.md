@@ -45,7 +45,7 @@ Especificada como na nota da Aula 12 (§8), com o **ponto de aplicação** de ca
 | | filtro da memória falha → o relato não é gravado | **código**, fail-closed | `src/memoria.py:368` |
 | | ferramenta levanta exceção → turno para, transbordo | **código** | `src/grafo.py:317`; `tests/test_controles.py::test_excecao_de_ferramenta_vira_motivo_e_nao_derruba` |
 | | ninguém responde à aprovação em 15 min → nada é agendado, transbordo | **código** | `tests/test_grafo.py::test_expirar_nao_agenda_e_encaminha_humano`; caso G11 |
-| **Quem pode suspender** | o responsável técnico ou o gerente da operação, criando o arquivo `dados/SUSPENSO` (todas as conversas vão para humano até ele ser apagado); revogar a chave no console da Groq corta o modelo | **código** (C5) + **credencial** | `src/guardas.py:88`, `src/grafo.py:152`; `tests/test_controles.py::test_c5_*`. responsável designado: **Bruno José Oliveira Gomes** (desde 12/11/2026) |
+| **Quem pode suspender** | o responsável técnico ou o gerente da operação, criando o arquivo `dados/SUSPENSO` (todas as conversas vão para humano até ele ser apagado); revogar a chave no console da Groq corta o modelo | **código** (C5) + **credencial** | `src/guardas.py:88`, `src/grafo.py:152`; `tests/test_controles.py::test_c5_*`. **LACUNA L2**: as pessoas não estão nomeadas |
 
 ## 4. Ferramentas e integrações
 
@@ -88,7 +88,7 @@ Sem MCP, sem plugin de terceiros, sem multiagente (`docs/mudancas.md` §5).
 | 107 testes automatizados passam, sem modelo nem rede | `python -m pytest tests -q` |
 | SLO de qualidade (≥ 95% de execuções boas): **violado** na suíte — 87,8% (36/41) — por casos adversariais | `docs/observabilidade.md` §4; `evals/resultados/metricas_2.1.0_x_3.0.0.json` |
 | **Qualidade com o modelo real** | **LACUNA L1** — nenhuma rodada com `--modelo real` foi commitada; os números acima medem o código em volta do modelo, não o LLM (`docs/evals.md` §5) |
-| **Juiz de coerência** | **LACUNA L6** — rubrica, código e os 20 rótulos prontos; falta a execução (`docs/evals.md` §3) |
+| **Juiz de coerência** | **LACUNA L6** — rubrica e código prontos; faltam os 20 rótulos humanos e a execução (`docs/evals.md` §3) |
 
 ## 8. Limites conhecidos
 
@@ -113,7 +113,7 @@ Detalhe em `docs/seguranca.md` §4.
 
 - **O cliente** aprova, recusa ou edita a data de toda visita técnica, no chat, com o cartão montado pelo código (`docs/humano.md`). Prazo de 15 min; sem resposta, nada é agendado.
 - **O atendente humano** recebe todo transbordo (cobrança, fora do corpus, orçamento esgotado, laço, expirada, erro), com a conversa e a trajetória.
-- **O gerente da operação / responsável técnico** (designado: Bruno José Oliveira Gomes) acompanha as métricas e o SLO (`python -m evals.metricas`) e pode suspender o agente (C5).
+- **O gerente da operação / responsável técnico** acompanha as métricas e o SLO (`python -m evals.metricas`) e pode suspender o agente (C5).
 
 ## 11. Registro e retenção
 
@@ -136,15 +136,17 @@ Conclusão, só com o trace: a visita foi proposta porque a linha estava fisicam
 
 ## 12. Histórico de mudanças
 
-`docs/mudancas.md` — as 18 correções da devolutiva da Parte 1, os 6 defeitos achados nesta entrega, o que entrou na 3.0.0 e a tabela de versões (2.0.0, 2.1.0, 3.0.0-rc1, 3.0.0). O histórico de commits é a evidência de quando cada mudança entrou.
+`docs/mudancas.md` — as 18 correções da devolutiva da Parte 1, os 6 defeitos achados nesta entrega, o que entrou na 3.0.0 e a tabela de versões (2.0.0, 2.1.0, 3.0.0-rc1, 3.0.0). Cada linha tem uma coluna com o commit. Limite declarado: antes da devolutiva da Parte 3 o repositório tem um único commit (`5472cdd`), então, para o que veio antes, o hash prova que a mudança existe nele, não quando entrou. As correções da devolutiva da Parte 3 (`docs/mudancas.md` §6) têm um commit cada.
 
 ## Lacunas
 
 | # | Lacuna | Correção proposta |
 |---|---|---|
 | L1 | Nenhuma rodada da suíte com o modelo real; latência e custo reais não medidos | `python -m evals.rodar --versao 3.0.0 --modelo real --nome 3.0.0_qwen3.8-27b`, commitar a pasta, rodar `evals.metricas` sobre ela e atualizar §7 e `docs/observabilidade.md` §3 |
+| L2 | Pessoas que podem suspender o agente não estão nomeadas | o grupo decide e escreve os nomes no §3 (e no `docs/case.md` §2.1) |
 | L3 | Ninguém conferiu no console da Groq que não há cartão cadastrado | conferir em Settings → Billing e registrar data e quem conferiu |
 | L4 | "Não responda de cabeça sobre o manual" é só prompt | o portão do RAG já é código; falta conferir em código que toda resposta que cita regra tem fonte de corpus — candidato a uma terceira família no C4 |
 | L5 | Os três candidatos da análise de modelos não foram rodados | rodar a suíte com cada modelo (`docs/modelos.md` §3) |
-| L6 | Juiz de coerência não executado (os 20 rótulos estão prontos, redigidos com apoio de IA e assumidos pelo rotulador) | rodar `python -m evals.juiz --validar`, classificar os desacordos e atualizar `docs/evals.md` §3 |
+| L6 | Juiz de coerência não validado | rotular os 20 itens de `evals/juiz/rotulos.jsonl` e rodar `python -m evals.juiz --validar` |
 | L7 | Checkpoint guarda mensagens sem mascaramento e sem expiração | rotina de expiração por data do checkpoint em `scripts/limpar_logs_antigos.py`, ou mascarar a mensagem antes de entrar no estado (custo: o modelo deixa de ver o dado) |
+| L8 | Casos sintéticos sem revisor declarado | preencher `revisao.por` e `revisao.data` dos 14 casos (`docs/evals.md` §1) |

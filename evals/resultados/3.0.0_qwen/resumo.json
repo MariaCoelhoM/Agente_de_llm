@@ -1,0 +1,56 @@
+{
+  "rodada": "3.0.0_qwen",
+  "versao": "3.0.0",
+  "modelo": "real",
+  "versao_dataset": "1.0.0",
+  "casos": 28,
+  "origens": {
+    "producao": 0,
+    "desenvolvimento": 14,
+    "sintetico": 14
+  },
+  "por_classe": {
+    "diagnostico": 0.0,
+    "recusa_escopo": 50.0,
+    "robustez": 66.7,
+    "seguranca": 100.0,
+    "visita_aprovacao": 0.0
+  },
+  "media": 43.3,
+  "acerto_geral": 35.7,
+  "por_nivel": {
+    "deterministico": {
+      "checagens": 64,
+      "ok": 44
+    },
+    "trajetoria": {
+      "checagens": 39,
+      "ok": 25
+    },
+    "resultado": {
+      "checagens": 25,
+      "ok": 21
+    }
+  },
+  "falhas": [
+    "G01",
+    "G02",
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08",
+    "G09",
+    "G10",
+    "G11",
+    "G12",
+    "G13",
+    "G14",
+    "G15",
+    "G19",
+    "G20",
+    "G22"
+  ],
+  "sinteticos_sem_revisao": []
+}

@@ -5,7 +5,8 @@
 - Preço Mistral Small: https://docs.mistral.ai/platform/pricing/ (consultado set/2026)
 - Preço GPT-4o mini: https://developers.openai.com/api/docs/pricing (consultado set/2026)
 - Preço Llama 3.1 8B Instant (Groq): https://groq.com/pricing (consultado set/2026)
-- Case original: ficha de case e enunciado das Partes 1 e 2 (material do grupo, fora do repositório)
+- Case original: `exercicios/Agente de Suporte Técnico Doméstico.md` e
+  `exercicios/Agente de Suporte Técnico Doméstico - parte 2.md` (material do grupo; transcritos dos PDFs originais, que saíram do repositório)
 
 ## Parte 2
 

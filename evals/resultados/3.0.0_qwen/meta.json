@@ -1,0 +1,16 @@
+{
+  "rodada": "3.0.0_qwen",
+  "versao": "3.0.0",
+  "modelo": "real",
+  "modelo_id": "qwen/qwen3.8-27b",
+  "controles": {
+    "identidade_pelo_canal": true,
+    "memoria_sanitizada": true,
+    "verificador_de_afirmacoes": true
+  },
+  "commit": "d5ee553",
+  "data": "2026-11-23T22:33:21",
+  "hoje_do_sistema": "2026-11-23",
+  "versao_dataset": "1.0.0",
+  "comando": "python -m evals.rodar --versao 3.0.0 --modelo real --nome 3.0.0_qwen"
+}
